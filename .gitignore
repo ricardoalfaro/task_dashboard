@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.npm-cache/
+.DS_Store
+prototype-*.png
+design-comparison.png
