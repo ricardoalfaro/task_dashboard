@@ -33,15 +33,15 @@ task_dashboard/
 ### Capas de la aplicación
 
 1. **Presentación**
-   
+
    Los componentes React renderizan las vistas del tablero, Hoy y Reportes. La interfaz utiliza Phosphor Icons y un sistema visual definido en `styles.css`.
 
 2. **Estado de la aplicación**
-   
+
    `App.jsx` mantiene las tareas, columnas, navegación y modales con hooks de React. Las operaciones del usuario actualizan este estado de manera inmediata.
 
 3. **Persistencia local**
-   
+
    Las columnas se guardan bajo la clave `td-columns` y las tareas bajo `td-tasks` en `localStorage`. Esto conserva la información al recargar la página en el mismo navegador.
 
 ## Componentes principales
