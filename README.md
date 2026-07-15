@@ -76,6 +76,7 @@ Una tarea utiliza una estructura similar a esta:
   columnId: "todo",
   title: "Preparar presentación semanal",
   description: "Resumir avances, bloqueos y próximos hitos.",
+  start: "2026-07-14",
   due: "2026-07-14",
   status: "active",
   createdAt: "2026-07-03",
@@ -132,4 +133,5 @@ El resultado se crea en el directorio `dist/`.
 - La información se conserva únicamente en el navegador donde fue creada.
 - No existe autenticación ni sincronización entre dispositivos.
 - Las fechas iniciales y los datos de demostración están definidos en `App.jsx`.
+- Las tareas existentes sin fecha de inicio se migran como tareas de un solo día, usando su fecha de entrega como inicio.
 - Una futura versión puede separar los componentes en archivos individuales e incorporar una API y base de datos para sincronización multiusuario.
