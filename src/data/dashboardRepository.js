@@ -50,6 +50,32 @@ const taskRecord = (boardId,task) => ({
   deprecated_at: task.deprecatedAt || null,
 });
 
+const localColumnRecord = (boardId,column,position) => ({
+  board_id: boardId,
+  legacy_id: String(column.id),
+  slug: column.slug || String(column.id).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || `column-${position}`,
+  title: column.title,
+  color: column.color || '#c5b3d3',
+  position,
+  is_fixed: ['todo','doing','done'].includes(String(column.id)) || Boolean(column.isFixed),
+});
+
+const localTaskRecord = (boardId,task,columnId,position) => ({
+  board_id: boardId,
+  legacy_id: String(task.id),
+  column_id: columnId,
+  title: task.title,
+  description: task.description || '',
+  start_date: task.start || task.due,
+  due_date: task.due,
+  effort: Number(task.effort) || 3,
+  status: task.status || 'active',
+  position,
+  completed_at: task.completedAt || null,
+  deprecated_at: task.deprecatedAt || null,
+  created_at: task.createdAt || undefined,
+});
+
 function resultOrThrow(result,message) {
   if (result.error) throw new Error(`${message}: ${result.error.message}`);
   return result.data;
@@ -92,5 +118,42 @@ export const dashboardRepository = {
   async deleteTask(taskId) {
     const result=await requireSupabase().from('tasks').delete().eq('id',taskId);
     resultOrThrow(result,'No se pudo eliminar la tarea');
+  },
+
+  async migrateLocalSnapshot(boardId,{boardTitle,columns,tasks}) {
+    const client=requireSupabase();
+    const before=await this.count(boardId);
+    const columnRows=columns.map(localColumnRecord.bind(null,boardId));
+    const columnsResult=await client.from('columns').upsert(columnRows,{onConflict:'board_id,slug'}).select('*');
+    const remoteColumns=resultOrThrow(columnsResult,'No se pudieron migrar las columnas');
+    const columnIds=new Map(remoteColumns.map(column=>[column.legacy_id,column.id]));
+    const fallbackTodo=remoteColumns.find(column=>column.slug==='todo')?.id;
+    const taskRows=tasks.map((task,index)=>localTaskRecord(boardId,task,columnIds.get(String(task.columnId))||fallbackTodo,index));
+    if(taskRows.some(task=>!task.column_id))throw new Error('No se encontró la columna TO-DO para migrar algunas tareas.');
+    if(taskRows.length){
+      const tasksResult=await client.from('tasks').upsert(taskRows,{onConflict:'board_id,legacy_id'}).select('id,legacy_id');
+      resultOrThrow(tasksResult,'No se pudieron migrar las tareas');
+    }
+    await this.updateBoardName(boardId,boardTitle);
+    const after=await this.count(boardId);
+    const migratedColumnsResult=await client.from('columns').select('legacy_id').eq('board_id',boardId).not('legacy_id','is',null);
+    const migratedTasksResult=await client.from('tasks').select('legacy_id').eq('board_id',boardId).not('legacy_id','is',null);
+    const migratedColumnIds=new Set(resultOrThrow(migratedColumnsResult,'No se pudieron verificar las columnas').map(item=>item.legacy_id));
+    const migratedTaskIds=new Set(resultOrThrow(migratedTasksResult,'No se pudieron verificar las tareas').map(item=>item.legacy_id));
+    const missingColumns=columns.filter(column=>!migratedColumnIds.has(String(column.id)));
+    const missingTasks=tasks.filter(task=>!migratedTaskIds.has(String(task.id)));
+    if(missingColumns.length||missingTasks.length)throw new Error(`La verificación detectó ${missingColumns.length} columnas y ${missingTasks.length} tareas faltantes.`);
+    return {before,after,imported:{columns:columns.length,tasks:tasks.length}};
+  },
+
+  async count(boardId) {
+    const client=requireSupabase();
+    const [columnsResult,tasksResult]=await Promise.all([
+      client.from('columns').select('*',{count:'exact',head:true}).eq('board_id',boardId),
+      client.from('tasks').select('*',{count:'exact',head:true}).eq('board_id',boardId),
+    ]);
+    if(columnsResult.error)throw new Error(`No se pudieron contar las columnas: ${columnsResult.error.message}`);
+    if(tasksResult.error)throw new Error(`No se pudieron contar las tareas: ${tasksResult.error.message}`);
+    return {columns:columnsResult.count||0,tasks:tasksResult.count||0};
   },
 };

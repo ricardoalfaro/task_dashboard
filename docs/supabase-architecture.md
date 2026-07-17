@@ -40,6 +40,7 @@ Operaciones administrativas, migraciones y exportaciones a Notion usarán secret
 5. Crear usuarios supervisores y validar que RLS bloquee toda escritura de un `viewer`.
 
 La migración inicial está en `supabase/migrations/202607170001_initial_schema.sql`.
+La migración `202607170002_local_migration_keys.sql` agrega identificadores de origen únicos para importar datos de `localStorage` sin duplicarlos.
 
 ## Configuración del cliente
 
@@ -52,3 +53,11 @@ El frontend cuenta con una capa de acceso en `src/data/dashboardRepository.js`. 
 La clave anónima es pública y está protegida por RLS. La clave `service_role` no forma parte de la configuración del frontend.
 
 El repositorio ofrece carga completa y mutaciones explícitas para tablero, columnas y tareas. La aplicación seguirá usando `localStorage` hasta que exista una instancia conectada y una sesión de propietario; no se habilita un fallback silencioso después de un error remoto.
+
+## Migración de los datos locales
+
+`src/data/localMigration.js` prepara una instantánea de las claves `td-board-title`, `td-columns` y `td-tasks`. Antes de escribir en Supabase guarda una copia fechada en `td-local-backup`.
+
+La importación usa `legacy_id` como clave idempotente: los identificadores locales no se reutilizan como UUID, pero cada columna y tarea queda asociada permanentemente a su registro de origen. Las columnas se importan primero y luego se reconstruyen las relaciones de las tareas con los UUID remotos.
+
+El proceso cuenta los registros antes y después y verifica que todos los identificadores locales existan remotamente. Solo después de completar esas comprobaciones escribe `td-cloud-migration`. La aplicación no debe cambiar su fuente de verdad a Supabase antes de que exista esa marca y se haya cargado exitosamente el tablero remoto.

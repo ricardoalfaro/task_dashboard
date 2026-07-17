@@ -183,7 +183,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.3. Migrar los datos locales existentes
 
-- **Estado:** Pendiente
+- **Estado:** En curso — importación idempotente y verificación preparadas; pendiente ejecutarlas contra la instancia
 - **Alcance:** Importar a la base de datos las tareas y columnas actualmente almacenadas en el navegador de Ricardo.
 - **Criterios de aceptación:**
   - La migración no duplica ni pierde tareas.
