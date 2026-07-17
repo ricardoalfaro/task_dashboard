@@ -144,6 +144,17 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - La interacción ofrece una alternativa accesible al arrastre.
   - Los cambios persisten al recargar.
 
+#### 6.7. Refinar la Línea de tiempo como Kanban–Gantt
+
+- **Estado:** Terminada
+- **Alcance:** Presentar los siete días como columnas contiguas, ampliar las tarjetas y combinar navegación semanal con selección directa de fecha.
+- **Criterios de aceptación:**
+  - El calendario utiliza todo el ancho disponible de la vista.
+  - Cada día se percibe como una columna Kanban unida a las demás.
+  - Las tareas muestran título, descripción, fechas y esfuerzo en tarjetas más legibles.
+  - Arrastrar una tarjeta hacia otro día conserva su duración y actualiza sus fechas.
+  - Se puede navegar con semana anterior/siguiente, volver a la semana actual o elegir una fecha.
+
 ### 7. Persistencia en la nube y portal de seguimiento externo
 
 - **Estado:** Pendiente
