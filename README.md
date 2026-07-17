@@ -65,7 +65,7 @@ Muestra en formato de lista las tareas cuya fecha de entrega corresponde al día
 
 ### `Timeline`
 
-Representa las tareas entre su fecha de inicio y entrega en una semana de lunes a domingo mediante siete columnas Kanban contiguas. Las tarjetas muestran título, descripción, fechas y esfuerzo, y atraviesan tantos días como dure la tarea. Se puede navegar con las flechas, volver a la semana actual o elegir cualquier fecha con el date picker. Arrastrar una tarjeta hacia otro día conserva su duración y actualiza ambas fechas; los controles laterales ofrecen la misma operación con teclado. Las tareas terminadas permanecen visibles, tachadas y opacas.
+Representa las tareas entre su fecha de inicio y entrega en una semana de lunes a domingo mediante siete columnas Kanban contiguas. Las tarjetas muestran título, descripción, fechas y esfuerzo, y atraviesan tantos días como dure la tarea. Se puede navegar con las flechas, volver a la semana actual, elegir cualquier fecha con el date picker o hacer scroll horizontal para cambiar una semana por gesto. Arrastrar una tarjeta hacia otro día conserva su duración y actualiza ambas fechas; los controles laterales ofrecen la misma operación con teclado. Las tareas terminadas permanecen visibles, tachadas y opacas.
 
 ### `Reports`
 

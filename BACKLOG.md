@@ -154,6 +154,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - Las tareas muestran título, descripción, fechas y esfuerzo en tarjetas más legibles.
   - Arrastrar una tarjeta hacia otro día conserva su duración y actualiza sus fechas.
   - Se puede navegar con semana anterior/siguiente, volver a la semana actual o elegir una fecha.
+  - Un gesto de scroll horizontal hacia la izquierda o derecha cambia una semana por vez.
 
 ### 7. Persistencia en la nube y portal de seguimiento externo
 
