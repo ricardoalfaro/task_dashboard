@@ -46,6 +46,8 @@ Operaciones administrativas, migraciones y exportaciones a Notion usarán secret
 La migración inicial está en `supabase/migrations/202607170001_initial_schema.sql`.
 La migración `202607170002_local_migration_keys.sql` agrega identificadores de origen únicos para importar datos de `localStorage` sin duplicarlos.
 
+Tras aplicar ambas migraciones, `scripts/bootstrap-supabase.mjs` crea o reutiliza el propietario, su tablero y las tres columnas fijas. Devuelve el UUID que debe configurarse como `VITE_SUPABASE_BOARD_ID`; la rutina es idempotente y utiliza `service_role` solo en el proceso local de servidor.
+
 ## Configuración del cliente
 
 El frontend cuenta con una capa de acceso en `src/data/dashboardRepository.js`. Para habilitarla se deben configurar las variables documentadas en `.env.example`:
