@@ -1,5 +1,5 @@
-import { dashboardRepository } from './dashboardRepository';
-import { supabaseConfig } from '../lib/supabase';
+import { dashboardRepository } from './dashboardRepository.js';
+import { supabaseConfig } from '../lib/supabase.js';
 
 export const LOCAL_MIGRATION_KEY='td-cloud-migration';
 export const LOCAL_BACKUP_KEY='td-local-backup';

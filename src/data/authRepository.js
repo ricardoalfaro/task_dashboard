@@ -1,4 +1,4 @@
-import { requireSupabase } from '../lib/supabase';
+import { requireSupabase } from '../lib/supabase.js';
 
 function dataOrThrow(result,message) {
   if(result.error)throw new Error(`${message}: ${result.error.message}`);

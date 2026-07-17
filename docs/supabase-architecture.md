@@ -56,7 +56,7 @@ El frontend cuenta con una capa de acceso en `src/data/dashboardRepository.js`. 
 
 La clave anónima es pública y está protegida por RLS. La clave `service_role` no forma parte de la configuración del frontend.
 
-El repositorio ofrece carga completa y mutaciones explícitas para tablero, columnas y tareas. La aplicación seguirá usando `localStorage` hasta que exista una instancia conectada y una sesión de propietario; no se habilita un fallback silencioso después de un error remoto.
+El repositorio ofrece carga completa, sincronización y mutaciones explícitas para tablero, columnas y tareas. Cuando las variables no existen, la aplicación sigue usando `localStorage`. Cuando están configuradas, exige una sesión, carga Supabase como fuente de verdad y muestra cualquier error de guardado; no existe un fallback remoto silencioso.
 
 ## Migración de los datos locales
 
@@ -64,4 +64,4 @@ El repositorio ofrece carga completa y mutaciones explícitas para tablero, colu
 
 La importación usa `legacy_id` como clave idempotente: los identificadores locales no se reutilizan como UUID, pero cada columna y tarea queda asociada permanentemente a su registro de origen. Las columnas se importan primero y luego se reconstruyen las relaciones de las tareas con los UUID remotos.
 
-El proceso cuenta los registros antes y después y verifica que todos los identificadores locales existan remotamente. Solo después de completar esas comprobaciones escribe `td-cloud-migration`. La aplicación no debe cambiar su fuente de verdad a Supabase antes de que exista esa marca y se haya cargado exitosamente el tablero remoto.
+El proceso cuenta los registros antes y después y verifica que todos los identificadores locales existan remotamente. Solo después de completar esas comprobaciones escribe `td-cloud-migration`. En el primer acceso del propietario, la aplicación ejecuta esta importación si encuentra datos locales y después carga el tablero remoto. Los perfiles `viewer` nunca ejecutan la migración.

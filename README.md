@@ -18,7 +18,7 @@ El tablero busca centralizar el seguimiento personal de tareas en una experienci
 
 ## Arquitectura
 
-El proyecto es una aplicación de una sola página construida con React y Vite. Actualmente no necesita un backend: el estado se administra en el navegador y se conserva mediante `localStorage`.
+El proyecto es una aplicación de una sola página construida con React y Vite. Funciona localmente con `localStorage` y, al configurar Supabase, cambia a persistencia remota autenticada con permisos de propietario y supervisor.
 
 ```text
 task_dashboard/
@@ -41,9 +41,13 @@ task_dashboard/
 
    `App.jsx` mantiene las tareas, columnas, navegación y modales con hooks de React. Las operaciones del usuario actualizan este estado de manera inmediata.
 
-3. **Persistencia local**
+3. **Persistencia**
 
-   Las columnas se guardan bajo la clave `td-columns` y las tareas bajo `td-tasks` en `localStorage`. Esto conserva la información al recargar la página en el mismo navegador.
+   Sin configuración remota, las columnas se guardan bajo `td-columns` y las tareas bajo `td-tasks` en `localStorage`. Con las variables `VITE_SUPABASE_*`, Supabase se convierte en la fuente de verdad y sincroniza tablero, columnas y tareas entre dispositivos.
+
+4. **Acceso externo**
+
+   Supabase Auth administra las sesiones. El rol `owner` conserva la edición completa; el rol `viewer` entra directamente a Reportes y solo puede consultar métricas y detalle de tareas.
 
 ## Componentes principales
 

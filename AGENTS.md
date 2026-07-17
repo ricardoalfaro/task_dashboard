@@ -23,6 +23,6 @@ When implementing from a selected generated mock, treat that image as the source
 - Today and Reports use centered max-width content containers; the sidebar starts collapsed by default.
 - Use Iconoir for interface icons. The sidebar control lives in the sidebar header and replaces the former footer collapse action.
 - The expanded sidebar header shows a disabled search field instead of personal identity or avatar; collapsing hides only that field and keeps the sidebar control aligned.
-- The main sidebar includes a disabled “Línea de tiempo” destination in place of the former search item until the weekly task-management view is implemented.
-- Sidebar navigation is grouped as `VISTAS` (Tablero, Semana, Hoy), `OPCIONES` (Reportes, Filtros, Archivo), with Configuración anchored at the bottom. Reports includes a disabled Compartir CTA reserved for private report URLs.
+- The main sidebar includes an enabled `Semana` destination for weekly task management.
+- Sidebar navigation is grouped as `VISTAS` (Tablero, Semana, Hoy), `OPCIONES` (Reportes, Filtros, Archivo), with Configuración anchored at the bottom. Reports enables Compartir only for an authenticated owner and copies the protected report entry URL.
 - Appearance defaults to the operating-system preference and cycles through System, Light, and Dark from a single footer icon above Configuración; expanded sidebar shows the theme label and collapsed sidebar shows only the icon.

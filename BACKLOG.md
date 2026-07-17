@@ -173,7 +173,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.2. Persistir tareas y columnas en la nube
 
-- **Estado:** En curso — cliente y repositorio preparados; pendiente de conectar una instancia Supabase
+- **Estado:** En curso — carga y sincronización implementadas; pendiente verificar contra la instancia Supabase
 - **Alcance:** Reemplazar `localStorage` como fuente principal por una API y base de datos remota.
 - **Criterios de aceptación:**
   - Las tareas, columnas personalizadas, posiciones, esfuerzo, fechas y estados persisten entre dispositivos.
@@ -183,7 +183,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.3. Migrar los datos locales existentes
 
-- **Estado:** En curso — importación idempotente y verificación preparadas; pendiente ejecutarlas contra la instancia
+- **Estado:** En curso — importación automática idempotente implementada; pendiente ejecutarla contra la instancia
 - **Alcance:** Importar a la base de datos las tareas y columnas actualmente almacenadas en el navegador de Ricardo.
 - **Criterios de aceptación:**
   - La migración no duplica ni pierde tareas.
@@ -193,7 +193,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.4. Implementar autenticación y permisos por rol
 
-- **Estado:** En curso — sesión, permisos y revocación preparados; pendiente conectar la experiencia autenticada
+- **Estado:** En curso — experiencia autenticada y roles conectados; pendiente verificar sesiones y revocación contra la instancia
 - **Alcance:** Crear sesiones seguras para el propietario y los supervisores de solo lectura.
 - **Criterios de aceptación:**
   - Un usuario no autenticado no puede consultar tareas ni reportes.
@@ -204,7 +204,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.5. Crear la experiencia externa de Reportes
 
-- **Estado:** Pendiente
+- **Estado:** En curso — portal de solo lectura implementado; pendiente validarlo con una cuenta `viewer`
 - **Alcance:** Ofrecer al perfil `viewer` una entrada enfocada en seguimiento, sin controles de edición ni navegación operativa innecesaria.
 - **Criterios de aceptación:**
   - Al iniciar sesión, el supervisor llega directamente a Reportes.

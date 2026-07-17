@@ -1,4 +1,4 @@
-import { requireSupabase } from '../lib/supabase';
+import { requireSupabase } from '../lib/supabase.js';
 
 const mapColumn = column => ({
   id: column.id,
@@ -155,5 +155,27 @@ export const dashboardRepository = {
     if(columnsResult.error)throw new Error(`No se pudieron contar las columnas: ${columnsResult.error.message}`);
     if(tasksResult.error)throw new Error(`No se pudieron contar las tareas: ${tasksResult.error.message}`);
     return {columns:columnsResult.count||0,tasks:tasksResult.count||0};
+  },
+
+  async syncSnapshot(boardId,{boardTitle,columns,tasks}) {
+    const client=requireSupabase();
+    await this.updateBoardName(boardId,boardTitle);
+    for(let index=0;index<columns.length;index+=1){
+      await this.upsertColumn(boardId,{...columns[index],position:10000+index});
+    }
+    for(let index=0;index<columns.length;index+=1){
+      await this.upsertColumn(boardId,{...columns[index],position:index});
+    }
+    for(let index=0;index<tasks.length;index+=1){
+      await this.upsertTask(boardId,{...tasks[index],position:index});
+    }
+    const taskIds=tasks.map(task=>task.id);
+    let deleteTasks=client.from('tasks').delete().eq('board_id',boardId);
+    if(taskIds.length)deleteTasks=deleteTasks.not('id','in',`(${taskIds.join(',')})`);
+    resultOrThrow(await deleteTasks,'No se pudieron sincronizar las tareas eliminadas');
+    const columnIds=columns.map(column=>column.id);
+    let deleteColumns=client.from('columns').delete().eq('board_id',boardId).eq('is_fixed',false);
+    if(columnIds.length)deleteColumns=deleteColumns.not('id','in',`(${columnIds.join(',')})`);
+    resultOrThrow(await deleteColumns,'No se pudieron sincronizar las columnas eliminadas');
   },
 };

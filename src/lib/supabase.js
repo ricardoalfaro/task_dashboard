@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const env = import.meta.env || {};
+const url = env.VITE_SUPABASE_URL;
+const anonKey = env.VITE_SUPABASE_ANON_KEY;
 
 export const supabaseConfig = {
-  boardId: import.meta.env.VITE_SUPABASE_BOARD_ID,
-  isConfigured: Boolean(url && anonKey && import.meta.env.VITE_SUPABASE_BOARD_ID),
+  boardId: env.VITE_SUPABASE_BOARD_ID,
+  isConfigured: Boolean(url && anonKey && env.VITE_SUPABASE_BOARD_ID),
 };
 
 export const supabase = url && anonKey
