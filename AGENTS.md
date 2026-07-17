@@ -6,6 +6,8 @@ Before making substantial visual changes, use the Product Design plugin's `get-c
 
 When implementing from a selected generated mock, treat that image as the source of truth for layout, component anatomy, density, spacing, color, typography, visible content, and hierarchy.
 
+New tasks default both their start and due dates to the current local date; users may edit either date before saving.
+
 ## Durable prototype decisions
 
 - Do not show an “Añadir tarea” action in the sidebar; task creation belongs in the main views.
