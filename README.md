@@ -81,6 +81,8 @@ Estos componentes encapsulan la visualización de una tarjeta, el formulario de 
 
 Antes del primer despliegue se deben crear `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `VITE_SUPABASE_BOARD_ID` en los entornos Production y Preview de Vercel. Son datos públicos del cliente, no secretos administrativos. Nunca se debe configurar `service_role` con prefijo `VITE_`.
 
+Después de aplicar las migraciones, `npm run bootstrap:supabase` crea o reutiliza el propietario, el tablero y las tres columnas fijas. El procedimiento está detallado en `docs/supabase-bootstrap.md`.
+
 La rama principal puede conectarse mediante la integración Git de Vercel para producción y las ramas de trabajo generan previews. El proyecto aún requiere enlazarse a una cuenta Vercel antes de obtener su URL estable.
 
 ## Copia periódica en Notion
