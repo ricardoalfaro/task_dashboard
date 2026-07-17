@@ -47,7 +47,7 @@ task_dashboard/
 
 4. **Acceso externo**
 
-   Supabase Auth administra las sesiones. El rol `owner` conserva la edición completa; el rol `viewer` entra directamente a Reportes y solo puede consultar métricas y detalle de tareas.
+   Supabase Auth administra las sesiones. El rol `owner` conserva la edición completa y puede administrar o revocar miembros desde Configuración; el rol `viewer` entra directamente a Reportes y solo puede consultar métricas y detalle de tareas.
 
 ## Componentes principales
 
