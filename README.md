@@ -1,6 +1,6 @@
 # Task Dashboard
 
-Task Dashboard es una aplicación web para organizar y dar seguimiento al trabajo diario. Su interfaz combina un tablero Kanban con una vista de tareas del día y reportes por distintos períodos, de modo que sea fácil entender qué está pendiente, qué está en curso y qué ya fue terminado.
+Task Dashboard es una aplicación web para organizar y dar seguimiento al trabajo diario. Su interfaz combina un tablero Kanban, planificación semanal, una vista de tareas del día y reportes por distintos períodos, de modo que sea fácil entender qué está pendiente, qué está en curso y qué ya fue terminado.
 
 ## Objetivo
 
@@ -10,6 +10,7 @@ El tablero busca centralizar el seguimiento personal de tareas en una experienci
 - Crear columnas adicionales según las necesidades del flujo de trabajo.
 - Registrar un nombre, una descripción y una fecha de entrega en cada tarea.
 - Mover tareas entre columnas mediante arrastrar y soltar.
+- Planificar las mismas tareas en una línea de tiempo semanal de lunes a domingo.
 - Consultar en formato de lista las tareas que vencen hoy.
 - Marcar tareas como terminadas o deprecadas.
 - Revisar métricas de tareas terminadas, pendientes y deprecadas.
@@ -57,6 +58,10 @@ Representa el Kanban. Distribuye las tareas por columna, permite añadir columna
 ### `Today`
 
 Muestra en formato de lista las tareas cuya fecha de entrega corresponde al día actual. Desde esta vista se puede abrir una tarea o marcarla como terminada.
+
+### `Timeline`
+
+Representa las tareas entre su fecha de inicio y entrega en una semana de lunes a domingo. Permite navegar entre semanas, ver el nivel de esfuerzo y abrir el mismo detalle editable del Kanban; las tareas terminadas permanecen visibles, tachadas y opacas.
 
 ### `Reports`
 

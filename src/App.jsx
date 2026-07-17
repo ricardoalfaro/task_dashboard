@@ -5,7 +5,7 @@ import {
   MoreHoriz as DotsThree, KanbanBoard as Kanban, Search as MagnifyingGlass,
   Plus, Flash as Lightning, FilterList as SlidersHorizontal, Trash, Xmark as X,
   SidebarCollapse, SidebarExpand, TableRows, Settings, ShareAndroid,
-  Computer, HalfMoon, SunLight
+  Computer, HalfMoon, SunLight, NavArrowLeft, NavArrowRight
 } from 'iconoir-react';
 
 const initialColumns = [
@@ -41,6 +41,7 @@ const getPeriodRange = (type,anchorValue) => {
   return {start:toISODate(start),end:toISODate(end)};
 };
 const formatPeriodDate = value => {const date=parseISODate(value);return `${date.getDate()} ${shortMonths[date.getMonth()]} ${date.getFullYear()}`};
+const differenceInDays = (from,to) => Math.round((parseISODate(to)-parseISODate(from))/86400000);
 
 function Modal({ title, onClose, children }) {
   return <div className="modal-backdrop" onMouseDown={onClose}><section className="modal" onMouseDown={e => e.stopPropagation()}>
@@ -113,6 +114,22 @@ function Board({ columns, tasks, setTasks, setColumns, openTask, boardTitle, set
     </div></div>;
 }
 
+function Timeline({ tasks, openTask }) {
+  const today=toISODate(new Date());
+  const [anchorDate,setAnchorDate]=useState(today);
+  const range=useMemo(()=>getPeriodRange('week',anchorDate),[anchorDate]);
+  const days=useMemo(()=>Array.from({length:7},(_,index)=>toISODate(addDays(parseISODate(range.start),index))),[range.start]);
+  const visibleTasks=tasks.filter(task=>task.status!=='deprecated'&&(task.start||task.due)<=range.end&&task.due>=range.start).sort((a,b)=>(a.start||a.due).localeCompare(b.start||b.due)||a.due.localeCompare(b.due));
+  const moveWeek=offset=>setAnchorDate(toISODate(addDays(parseISODate(anchorDate),offset*7)));
+  return <div className="timeline-view"><div className="timeline-header"><div><p className="eyebrow">PLANIFICACIÓN SEMANAL</p><h1>Semana</h1><p className="subtitle">Distribuye el trabajo y revisa la carga de cada día.</p></div><button className="primary" onClick={()=>openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button></div>
+    <section className="timeline-panel"><header className="timeline-toolbar"><div><button className="icon-button" onClick={()=>moveWeek(-1)} aria-label="Semana anterior"><NavArrowLeft width={20} height={20}/></button><button className="timeline-today" onClick={()=>setAnchorDate(today)}>Esta semana</button><button className="icon-button" onClick={()=>moveWeek(1)} aria-label="Semana siguiente"><NavArrowRight width={20} height={20}/></button></div><strong>{formatPeriodDate(range.start)} — {formatPeriodDate(range.end)}</strong></header>
+      <div className="timeline-scroll"><div className="timeline-calendar"><div className="timeline-days">{days.map(day=><div className={day===today?'is-today':''} key={day}><span>{parseISODate(day).toLocaleDateString('es-CL',{weekday:'short'}).replace('.','')}</span><b>{parseISODate(day).getDate()}</b></div>)}</div>
+        <div className="timeline-body">{visibleTasks.length?visibleTasks.map(task=>{const taskStart=task.start||task.due;const clippedStart=taskStart>range.start?taskStart:range.start;const clippedEnd=task.due<range.end?task.due:range.end;const startColumn=differenceInDays(range.start,clippedStart)+1;const endColumn=differenceInDays(range.start,clippedEnd)+2;return <div className="timeline-task-row" key={task.id}><button className={`timeline-task ${task.status==='completed'?'completed':''} ${taskStart<range.start?'continues-before':''} ${task.due>range.end?'continues-after':''}`} style={{gridColumn:`${startColumn} / ${endColumn}`}} onClick={()=>openTask(task)} title={`${task.title}: ${formatPeriodDate(taskStart)} — ${formatPeriodDate(task.due)}`}><span>{task.title}</span><b>E{task.effort||3}</b></button></div>}):<div className="timeline-empty"><CalendarBlank width={30} height={30}/><b>Sin tareas esta semana</b><span>Navega a otra semana o crea una nueva tarea.</span></div>}</div>
+      </div></div>
+    </section>
+  </div>;
+}
+
 function Reports({ tasks, openTask }) {
   const [periodType,setPeriodType]=useState('month');
   const [anchorDate,setAnchorDate]=useState('2026-07-14');
@@ -169,7 +186,7 @@ function Today({ tasks, setTasks, openTask }) {
 }
 
 export function App() {
-  const [page,setPage]=useState('board');
+  const [page,setPage]=useState(()=>localStorage.getItem('td-page')||'board');
   const [sidebarCollapsed,setSidebarCollapsed]=useState(true);
   const [theme,setTheme]=useState(()=>localStorage.getItem('td-theme')||'system');
   const [boardTitle,setBoardTitle]=useState(()=>localStorage.getItem('td-board-title')||'Mi tablero');
@@ -179,6 +196,7 @@ export function App() {
   useEffect(()=>localStorage.setItem('td-columns',JSON.stringify(columns)),[columns]);
   useEffect(()=>localStorage.setItem('td-tasks',JSON.stringify(tasks)),[tasks]);
   useEffect(()=>localStorage.setItem('td-board-title',boardTitle),[boardTitle]);
+  useEffect(()=>localStorage.setItem('td-page',page),[page]);
   useEffect(()=>{const media=window.matchMedia('(prefers-color-scheme: dark)');const applyTheme=()=>{document.documentElement.dataset.theme=theme==='system'?(media.matches?'dark':'light'):theme};applyTheme();localStorage.setItem('td-theme',theme);media.addEventListener('change',applyTheme);return()=>media.removeEventListener('change',applyTheme)},[theme]);
   const pending=useMemo(()=>tasks.filter(t=>t.status==='active').length,[tasks]);
   const openTask=(task,columnId)=>{setEditing(task);setDefaultColumn(columnId);setModal(true)};
@@ -188,10 +206,10 @@ export function App() {
   const ThemeIcon=theme==='system'?Computer:theme==='light'?SunLight:HalfMoon;
   const themeLabel=theme==='system'?'Tema del sistema':theme==='light'?'Tema claro':'Tema oscuro';
   return <div className={`app-shell ${sidebarCollapsed?'sidebar-collapsed':''}`}><aside><div className="account"><label className="sidebar-search"><MagnifyingGlass width={18} height={18}/><input disabled type="search" placeholder="Buscar" aria-label="Buscar, aún no disponible"/></label><button className="account-sidebar-toggle" onClick={()=>setSidebarCollapsed(value=>!value)} aria-label={sidebarCollapsed?'Expandir menú':'Contraer menú'} title={sidebarCollapsed?'Expandir menú':'Contraer menú'}>{sidebarCollapsed?<SidebarExpand width={20} height={20}/>:<SidebarCollapse width={20} height={20}/>}</button></div>
-    <div className="sidebar-label">VISTAS</div><nav><button className={page==='board'?'active':''} onClick={()=>setPage('board')}><Kanban width={21} height={21}/><span>Tablero</span><b>{pending}</b></button><button disabled title="Vista semanal de Línea de tiempo, próximamente"><TableRows width={21} height={21}/><span>Semana</span></button><button className={page==='today'?'active':''} onClick={()=>setPage('today')}><CalendarBlank width={21} height={21}/><span>Hoy</span></button></nav>
+    <div className="sidebar-label">VISTAS</div><nav><button className={page==='board'?'active':''} aria-current={page==='board'?'page':undefined} onClick={()=>setPage('board')}><Kanban width={21} height={21}/><span>Tablero</span><b>{pending}</b></button><button className={page==='timeline'?'active':''} aria-current={page==='timeline'?'page':undefined} onClick={()=>setPage('timeline')}><TableRows width={21} height={21}/><span>Semana</span></button><button className={page==='today'?'active':''} aria-current={page==='today'?'page':undefined} onClick={()=>setPage('today')}><CalendarBlank width={21} height={21}/><span>Hoy</span></button></nav>
     <div className="sidebar-label">OPCIONES</div><nav><button className={page==='reports'?'active':''} onClick={()=>setPage('reports')}><ChartBar width={21} height={21}/><span>Reportes</span></button><button disabled title="Filtros aún no disponibles"><SlidersHorizontal width={21} height={21}/><span>Filtros</span></button><button disabled title="Archivo de tareas, próximamente"><Archive width={21} height={21}/><span>Archivo</span><b>{tasks.filter(t=>t.status==='deprecated').length}</b></button></nav>
     <div className="aside-bottom"><button className="theme-toggle" onClick={cycleTheme} title={`${themeLabel}. Cambiar apariencia`} aria-label={`${themeLabel}. Cambiar apariencia`}><ThemeIcon width={20} height={20}/><span>{themeLabel}</span></button><button disabled title="Configuración aún no disponible"><Settings width={20} height={20}/><span>Configuración</span></button></div>
-  </aside><main>{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask}/>:<Reports tasks={tasks} openTask={openTask}/>}</main>
+  </aside><main>{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='timeline'?<Timeline tasks={tasks} openTask={openTask}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask}/>:<Reports tasks={tasks} openTask={openTask}/>}</main>
   {modal&&<Modal title={editing?'Editar tarea':'Nueva tarea'} onClose={()=>setModal(false)}><TaskForm task={editing} columns={columns} defaultColumn={defaultColumn} onSave={save} onClose={()=>setModal(false)}/>{editing&&<button className="delete-task" onClick={()=>{setTasks(ts=>ts.filter(t=>t.id!==editing.id));setModal(false)}}><Trash width={17} height={17}/> Eliminar definitivamente</button>}</Modal>}
   </div>;
 }

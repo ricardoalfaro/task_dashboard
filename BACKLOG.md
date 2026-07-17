@@ -76,7 +76,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 ### 6. Agregar una vista semanal de Línea de tiempo
 
-- **Estado:** Pendiente
+- **Estado:** En curso — visualización terminada; pendiente la planificación directa
 - **Prioridad:** Alta
 - **Objetivo:** Permitir planificar y revisar las mismas tareas tanto en Kanban como en una distribución temporal semanal.
 - **Principios acordados:**
@@ -97,7 +97,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.2. Habilitar la navegación Kanban / Línea de tiempo
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Habilitar la opción `Línea de tiempo` del sidebar para acceder a la visualización semanal, manteniendo `Mi tablero` como entrada al Kanban.
 - **Criterios de aceptación:**
   - El cambio de vista no modifica ni duplica tareas.
@@ -106,7 +106,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.3. Construir la navegación semanal
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Mostrar una semana de lunes a domingo con acciones para avanzar, retroceder y volver a la semana actual.
 - **Criterios de aceptación:**
   - La interfaz comunica claramente las fechas inicial y final de la semana visible.
@@ -116,7 +116,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.4. Representar las tareas en la Línea de tiempo
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Dibujar cada tarea desde su fecha de inicio hasta su fecha de entrega dentro de la semana seleccionada.
 - **Criterios de aceptación:**
   - Las tareas aparecen en los días que les corresponden.
@@ -126,7 +126,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.5. Mostrar correctamente tareas terminadas
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Reflejar el estado terminado de forma diferente en cada visualización.
 - **Criterios de aceptación:**
   - Una tarea terminada permanece en `DONE` en Kanban.
