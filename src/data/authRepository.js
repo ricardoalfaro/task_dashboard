@@ -5,6 +5,13 @@ function dataOrThrow(result,message) {
   return result.data;
 }
 
+async function manageMembers(action,payload={}) {
+  const result=await requireSupabase().functions.invoke('manage-members',{body:{action,...payload}});
+  if(result.error)throw new Error(`No se pudo administrar el acceso: ${result.error.message}`);
+  if(result.data?.error)throw new Error(result.data.error);
+  return result.data;
+}
+
 export const permissionsForRole=role=>({
   role,
   canRead:role==='owner'||role==='viewer',
@@ -44,18 +51,19 @@ export const authRepository={
   },
 
   async listMembers(boardId) {
-    const result=await requireSupabase().from('board_members').select('user_id,role,created_at').eq('board_id',boardId).order('created_at');
-    return dataOrThrow(result,'No se pudieron cargar los accesos');
+    return (await manageMembers('list',{boardId})).members;
   },
 
-  async setMemberRole(boardId,userId,role='viewer') {
+  async setMemberAccess(boardId,{email,password,role='viewer'}) {
     if(!['owner','viewer'].includes(role))throw new Error('El rol indicado no es válido.');
-    const result=await requireSupabase().from('board_members').upsert({board_id:boardId,user_id:userId,role},{onConflict:'board_id,user_id'}).select().single();
-    return dataOrThrow(result,'No se pudo guardar el acceso');
+    return (await manageMembers('upsert',{boardId,email,password,role})).member;
+  },
+
+  async setMemberRole(boardId,member,role='viewer') {
+    return this.setMemberAccess(boardId,{email:member.email,role});
   },
 
   async revokeMember(boardId,userId) {
-    const result=await requireSupabase().from('board_members').delete().eq('board_id',boardId).eq('user_id',userId);
-    dataOrThrow(result,'No se pudo revocar el acceso');
+    await manageMembers('revoke',{boardId,userId});
   },
 };

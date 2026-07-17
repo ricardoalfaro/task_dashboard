@@ -8,8 +8,9 @@ Este proceso se ejecuta una vez después de aplicar las migraciones SQL. Es idem
 2. Aplicar, en orden, los archivos de `supabase/migrations/` mediante el SQL Editor o Supabase CLI.
 3. Definir localmente `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_OWNER_EMAIL` y, para un usuario nuevo, `SUPABASE_OWNER_PASSWORD`.
 4. Ejecutar `npm run bootstrap:supabase`.
-5. Copiar el `boardId` entregado a `VITE_SUPABASE_BOARD_ID` en Vercel y en el entorno local.
-6. Configurar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` con los valores públicos del proyecto.
+5. Desplegar la función segura con `supabase functions deploy manage-members`.
+6. Copiar el `boardId` entregado a `VITE_SUPABASE_BOARD_ID` en Vercel y en el entorno local.
+7. Configurar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` con los valores públicos del proyecto.
 
 `SUPABASE_BOARD_NAME` es opcional. La contraseña solo se utiliza para crear la cuenta mediante Supabase Auth y nunca se escribe en archivos, logs ni tablas propias.
 
@@ -22,3 +23,9 @@ La rutina crea o reutiliza:
 - las columnas protegidas `TO-DO`, `DOING` y `DONE` con sus colores y posiciones.
 
 La salida contiene únicamente identificadores y estados de creación. La `service_role` no se imprime y nunca debe tener prefijo `VITE_`.
+
+## Administración de supervisores
+
+`supabase/functions/manage-members` permite que el propietario cree, actualice o revoque cuentas por correo desde Configuración. La plataforma verifica el JWT antes de ejecutar la función y luego se valida `is_board_owner` dentro de ella. Solo después de ambas comprobaciones se usa el cliente administrativo disponible en el runtime.
+
+La contraseña temporal viaja directamente a Supabase Auth. No se guarda en `board_members`, en el estado persistente del navegador ni en logs. Un supervisor revocado conserva su cuenta Auth, pero pierde inmediatamente toda lectura del tablero por RLS.

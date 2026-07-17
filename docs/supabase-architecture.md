@@ -27,6 +27,8 @@ Para la primera versión se recomienda una cuenta individual por supervisor. La 
 
 `src/data/authRepository.js` encapsula el inicio y cierre de sesión, observa cambios de sesión y resuelve permisos explícitos (`canRead`, `canWrite`, `canManageAccess`). También permite listar, cambiar y revocar miembros; RLS limita estas operaciones al propietario aunque se invoque la API fuera de la interfaz.
 
+La creación de cuentas se ejecuta en `manage-members`, una Edge Function autenticada. El frontend envía correo, contraseña temporal y rol con la sesión actual; la función vuelve a comprobar que el llamador sea propietario antes de usar privilegios administrativos. La `service_role` permanece exclusivamente en el runtime de Supabase.
+
 Las cuentas y contraseñas se gestionan exclusivamente mediante Supabase Auth. El dashboard nunca guarda contraseñas ni las incorpora al estado persistente o al bundle.
 
 ## Variables y secretos
