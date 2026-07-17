@@ -1,0 +1,42 @@
+name: Export tasks to Notion
+
+on:
+  workflow_dispatch:
+    inputs:
+      since:
+        description: Optional ISO timestamp for an incremental export
+        required: false
+        type: string
+      dry_run:
+        description: Validate without writing to Notion
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: '17 12 * * *'
+
+concurrency:
+  group: notion-task-export
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Export Supabase tasks to Notion
+        run: npm run export:notion
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_BOARD_ID: ${{ secrets.SUPABASE_BOARD_ID }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATA_SOURCE_ID: ${{ secrets.NOTION_DATA_SOURCE_ID }}
+          EXPORT_SINCE: ${{ inputs.since }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}

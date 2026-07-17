@@ -75,6 +75,18 @@ Calcula métricas a partir del mismo conjunto de tareas. Presenta totales, porce
 
 Estos componentes encapsulan la visualización de una tarjeta, el formulario de creación/edición y la capa modal reutilizable.
 
+## Despliegue en Vercel
+
+`vercel.json` configura el build de Vite, el fallback de la SPA, caché inmutable para assets versionados y cabeceras de seguridad. La URL puede ser pública, pero ningún dato remoto se carga sin una sesión válida de Supabase; los permisos efectivos se vuelven a aplicar en PostgreSQL mediante RLS.
+
+Antes del primer despliegue se deben crear `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` y `VITE_SUPABASE_BOARD_ID` en los entornos Production y Preview de Vercel. Son datos públicos del cliente, no secretos administrativos. Nunca se debe configurar `service_role` con prefijo `VITE_`.
+
+La rama principal puede conectarse mediante la integración Git de Vercel para producción y las ramas de trabajo generan previews. El proyecto aún requiere enlazarse a una cuenta Vercel antes de obtener su URL estable.
+
+## Copia periódica en Notion
+
+`npm run export:notion` ejecuta una sincronización unidireccional e idempotente desde Supabase. El workflow `notion-export.yml` la programa diariamente y permite lanzarla manualmente o en modo dry-run. La preparación del data source y las variables requeridas están documentadas en `docs/notion-export.md`.
+
 ## Modelo de datos
 
 Una tarea utiliza una estructura similar a esta:

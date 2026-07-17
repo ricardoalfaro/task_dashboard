@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "export:notion": "node scripts/export-to-notion.mjs",
+    "test:notion-export": "node --test scripts/export-to-notion.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.7",

@@ -217,7 +217,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.6. Publicar y proteger la aplicación
 
-- **Estado:** Pendiente
+- **Estado:** En curso — configuración Vercel y protección por sesión preparadas; pendiente enlazar proyecto, variables y desplegar
 - **Alcance:** Desplegar la aplicación y los servicios necesarios en una URL estable, incorporando la mejora 2.
 - **Criterios de aceptación:**
   - La aplicación cuenta con una URL pública estable y HTTPS.
@@ -228,7 +228,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.7. Exportar periódicamente una copia de seguimiento a Notion
 
-- **Estado:** Pendiente
+- **Estado:** En curso — rutina y agenda idempotentes implementadas; pendiente configurar secretos y validar la primera exportación
 - **Alcance:** Sincronizar periódicamente desde Supabase hacia una base de datos de Notion para mantener una copia consultable dentro de las herramientas de la empresa.
 - **Principios acordados:**
   - Supabase continúa siendo la única fuente de verdad.

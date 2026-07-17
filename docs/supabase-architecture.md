@@ -56,6 +56,8 @@ El frontend cuenta con una capa de acceso en `src/data/dashboardRepository.js`. 
 
 La clave anónima es pública y está protegida por RLS. La clave `service_role` no forma parte de la configuración del frontend.
 
+En Vercel, las tres variables `VITE_SUPABASE_*` deben configurarse por entorno. La aplicación está protegida por sesión en el cliente y por RLS en la base de datos: conocer la URL estática no concede acceso a tareas o reportes.
+
 El repositorio ofrece carga completa, sincronización y mutaciones explícitas para tablero, columnas y tareas. Cuando las variables no existen, la aplicación sigue usando `localStorage`. Cuando están configuradas, exige una sesión, carga Supabase como fuente de verdad y muestra cualquier error de guardado; no existe un fallback remoto silencioso.
 
 ## Migración de los datos locales
