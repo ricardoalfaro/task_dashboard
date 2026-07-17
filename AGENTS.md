@@ -26,4 +26,4 @@ When implementing from a selected generated mock, treat that image as the source
 - The main sidebar includes an enabled `Semana` destination for weekly task management.
 - Sidebar navigation is grouped as `VISTAS` (Tablero, Semana, Hoy), `OPCIONES` (Reportes, Filtros, Archivo), with Configuración anchored at the bottom. Reports enables Compartir only for an authenticated owner and copies the protected report entry URL.
 - Appearance defaults to the operating-system preference and cycles through System, Light, and Dark from a single footer icon above Configuración; expanded sidebar shows the theme label and collapsed sidebar shows only the icon.
-- When Supabase is connected, Configuración lets the owner manage report members and revoke access; viewers never see operational navigation or editing actions.
+- When Supabase is connected, Configuración lets the owner create report accounts by email, change roles, and revoke access; viewers never see operational navigation or editing actions.
