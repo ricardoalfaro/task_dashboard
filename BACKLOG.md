@@ -38,7 +38,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 ### 3. Ver las tareas terminadas desde Reportes
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Prioridad:** Alta
 - **Objetivo:** Pasar de una métrica resumida a la lista concreta de logros del periodo.
 - **Alcance inicial:** Permitir abrir la métrica de tareas terminadas y mostrar las tareas incluidas en el cálculo actual.
@@ -50,7 +50,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 ### 4. Agregar periodos de día, semana, mes y trimestre a Reportes
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Prioridad:** Alta
 - **Objetivo:** Consultar los logros con diferentes niveles de detalle temporal.
 - **Alcance inicial:** Reemplazar el filtro exclusivo de mes y año por un selector de periodo con las opciones Día, Semana, Mes y Trimestre (`Q`).

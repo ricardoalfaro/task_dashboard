@@ -28,6 +28,18 @@ const initialTasks = [
 const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const shortMonths = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const fmt = (date) => { const d = new Date(`${date}T12:00:00`); return `${d.getDate()} ${shortMonths[d.getMonth()]}`; };
+const toISODate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const parseISODate = value => new Date(`${value}T12:00:00`);
+const addDays = (date,days) => {const next=new Date(date);next.setDate(next.getDate()+days);return next};
+const getPeriodRange = (type,anchorValue) => {
+  const anchor=parseISODate(anchorValue);
+  let start=new Date(anchor), end=new Date(anchor);
+  if(type==='week'){const offset=(anchor.getDay()+6)%7;start=addDays(anchor,-offset);end=addDays(start,6)}
+  if(type==='month'){start=new Date(anchor.getFullYear(),anchor.getMonth(),1,12);end=new Date(anchor.getFullYear(),anchor.getMonth()+1,0,12)}
+  if(type==='quarter'){const firstMonth=Math.floor(anchor.getMonth()/3)*3;start=new Date(anchor.getFullYear(),firstMonth,1,12);end=new Date(anchor.getFullYear(),firstMonth+3,0,12)}
+  return {start:toISODate(start),end:toISODate(end)};
+};
+const formatPeriodDate = value => {const date=parseISODate(value);return `${date.getDate()} ${shortMonths[date.getMonth()]} ${date.getFullYear()}`};
 
 function Modal({ title, onClose, children }) {
   return <div className="modal-backdrop" onMouseDown={onClose}><section className="modal" onMouseDown={e => e.stopPropagation()}>
@@ -100,22 +112,33 @@ function Board({ columns, tasks, setTasks, setColumns, openTask, boardTitle, set
     </div></div>;
 }
 
-function Reports({ tasks }) {
-  const [month,setMonth]=useState(6), [year,setYear]=useState(2026);
-  const inPeriod=(date)=>date&&new Date(`${date}T12:00:00`).getMonth()===month&&new Date(`${date}T12:00:00`).getFullYear()===year;
-  const completed=tasks.filter(t=>t.status==='completed'&&inPeriod(t.completedAt)).length;
-  const deprecated=tasks.filter(t=>t.status==='deprecated'&&inPeriod(t.deprecatedAt)).length;
-  const pending=tasks.filter(t=>t.status==='active'&&inPeriod(t.due)).length;
-  const periodTasks=tasks.filter(t=>inPeriod(t.status==='completed'?t.completedAt:t.status==='deprecated'?t.deprecatedAt:t.due));
+function Reports({ tasks, openTask }) {
+  const [periodType,setPeriodType]=useState('month');
+  const [anchorDate,setAnchorDate]=useState('2026-07-14');
+  const [showCompleted,setShowCompleted]=useState(false);
+  const range=useMemo(()=>getPeriodRange(periodType,anchorDate),[periodType,anchorDate]);
+  const inPeriod=date=>date&&date.slice(0,10)>=range.start&&date.slice(0,10)<=range.end;
+  const completedTasks=tasks.filter(task=>task.status==='completed'&&inPeriod(task.completedAt));
+  const completed=completedTasks.length;
+  const deprecated=tasks.filter(task=>task.status==='deprecated'&&inPeriod(task.deprecatedAt)).length;
+  const pending=tasks.filter(task=>task.status==='active'&&inPeriod(task.due)).length;
+  const periodTasks=tasks.filter(task=>inPeriod(task.status==='completed'?task.completedAt:task.status==='deprecated'?task.deprecatedAt:task.due));
   const effortAverage=periodTasks.length?periodTasks.reduce((sum,task)=>sum+(Number(task.effort)||3),0)/periodTasks.length:0;
   const effortCounts=[1,2,3,4,5].map(level=>({level,count:periodTasks.filter(task=>(Number(task.effort)||3)===level).length}));
   const maxEffortCount=Math.max(...effortCounts.map(item=>item.count),1);
   const total=Math.max(completed+deprecated+pending,1);
   const data=[{label:'Terminadas',value:completed,color:'#735a78',icon:Check},{label:'Deprecadas',value:deprecated,color:'#c5b3d3',icon:Archive},{label:'Pendientes',value:pending,color:'#f5cbcb',icon:ClipboardText}];
-  return <div className="reports"><div className="reports-header"><div><p className="eyebrow">RESUMEN DE ACTIVIDAD</p><h1>Reportes</h1><p className="subtitle">Una vista clara de tu ritmo de trabajo.</p></div><div className="reports-controls"><button className="share-report" disabled title="Compartir reporte mediante una URL privada, próximamente"><ShareAndroid width={18} height={18}/> Compartir</button><div className="filters"><select value={month} onChange={e=>setMonth(Number(e.target.value))}>{months.map((m,i)=><option key={m} value={i}>{m[0].toUpperCase()+m.slice(1)}</option>)}</select><select value={year} onChange={e=>setYear(Number(e.target.value))}>{[2024,2025,2026,2027].map(y=><option key={y}>{y}</option>)}</select></div></div></div>
-    <div className="report-cards">{data.map(d=><article key={d.label}><div className="metric-icon" style={{color:d.color,background:`${d.color}14`}}><d.icon width={22} height={22}/></div><span>{d.label}</span><strong>{d.value}</strong><small>{Math.round(d.value/total*100)}% del total del mes</small></article>)}</div>
+  const anchor=parseISODate(anchorDate);
+  const quarter=Math.floor(anchor.getMonth()/3)+1;
+  const years=[2024,2025,2026,2027];
+  const periodLabel=range.start===range.end?formatPeriodDate(range.start):`${formatPeriodDate(range.start)} — ${formatPeriodDate(range.end)}`;
+  const setQuarter=value=>setAnchorDate(`${anchor.getFullYear()}-${String((Number(value)-1)*3+1).padStart(2,'0')}-01`);
+  const setPeriodYear=value=>setAnchorDate(`${value}-${String(anchor.getMonth()+1).padStart(2,'0')}-01`);
+  return <div className="reports"><div className="reports-header"><div><p className="eyebrow">RESUMEN DE ACTIVIDAD</p><h1>Reportes</h1><p className="subtitle">Una vista clara de tu ritmo de trabajo.</p></div><div className="reports-controls"><button className="share-report" disabled title="Compartir reporte mediante una URL privada, próximamente"><ShareAndroid width={18} height={18}/> Compartir</button><div className="period-controls"><select aria-label="Tipo de período" value={periodType} onChange={event=>setPeriodType(event.target.value)}><option value="day">Día</option><option value="week">Semana</option><option value="month">Mes</option><option value="quarter">Trimestre</option></select>{periodType==='day'&&<input aria-label="Día del reporte" type="date" value={anchorDate} onChange={event=>setAnchorDate(event.target.value)}/>} {periodType==='week'&&<input aria-label="Día dentro de la semana" type="date" value={anchorDate} onChange={event=>setAnchorDate(event.target.value)}/>} {periodType==='month'&&<input aria-label="Mes del reporte" type="month" value={anchorDate.slice(0,7)} onChange={event=>setAnchorDate(`${event.target.value}-01`)}/>} {periodType==='quarter'&&<><select aria-label="Trimestre" value={quarter} onChange={event=>setQuarter(event.target.value)}>{[1,2,3,4].map(value=><option key={value} value={value}>Q{value}</option>)}</select><select aria-label="Año" value={anchor.getFullYear()} onChange={event=>setPeriodYear(event.target.value)}>{years.map(year=><option key={year}>{year}</option>)}</select></>}</div><p className="active-period">{periodLabel}</p></div></div>
+    <div className="report-cards">{data.map(item=><article className={item.label==='Terminadas'?'report-card-action':''} key={item.label} onClick={item.label==='Terminadas'?()=>setShowCompleted(value=>!value):undefined} onKeyDown={item.label==='Terminadas'?event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setShowCompleted(value=>!value)}}:undefined} role={item.label==='Terminadas'?'button':undefined} tabIndex={item.label==='Terminadas'?0:undefined} aria-expanded={item.label==='Terminadas'?showCompleted:undefined}><div className="metric-icon" style={{color:item.color,background:`${item.color}14`}}><item.icon width={22} height={22}/></div><span>{item.label}</span><strong>{item.value}</strong><small>{item.label==='Terminadas'?'Ver tareas · ':''}{Math.round(item.value/total*100)}% del total del período</small></article>)}</div>
+    {showCompleted&&<section className="completed-report"><header><div><p className="eyebrow">DETALLE DEL PERÍODO</p><h2>Tareas terminadas</h2></div><span>{completedTasks.length}</span></header><div>{completedTasks.length?completedTasks.map(task=><button key={task.id} onClick={()=>openTask(task)}><div><b>{task.title}</b><p>{task.description||'Sin descripción'}</p></div><span><Check width={15} height={15}/> {formatPeriodDate(task.completedAt.slice(0,10))}</span></button>):<div className="completed-empty">No hay tareas terminadas en este período.</div>}</div></section>}
     <section className="effort-panel"><div className="effort-summary"><div className="metric-icon"><Lightning width={22} height={22}/></div><div><p className="eyebrow">NIVEL DE ESFUERZO</p><h2>{effortAverage?effortAverage.toFixed(1):'—'}<span> / 5 promedio</span></h2><p>{periodTasks.length} {periodTasks.length===1?'tarea considerada':'tareas consideradas'} en el período</p></div></div><div className="effort-bars">{effortCounts.map(item=><div key={item.level}><span>{item.level}</span><div><i style={{width:`${item.count/maxEffortCount*100}%`}}></i></div><b>{item.count}</b></div>)}</div></section>
-    <section className="report-panel"><div><p className="eyebrow">DISTRIBUCIÓN</p><h2>Estado de las tareas</h2><p>Actividad en {months[month]} de {year}</p></div><div className="chart-area"><div className="donut" style={{background:`conic-gradient(#735a78 0 ${completed/total*100}%, #c5b3d3 ${completed/total*100}% ${(completed+deprecated)/total*100}%, #f5cbcb ${(completed+deprecated)/total*100}% 100%)`}}><div><strong>{completed+deprecated+pending}</strong><span>Tareas</span></div></div><div className="legend">{data.map(d=><div key={d.label}><span style={{background:d.color}}></span><p>{d.label}<b>{d.value}</b></p></div>)}</div></div></section>
+    <section className="report-panel"><div><p className="eyebrow">DISTRIBUCIÓN</p><h2>Estado de las tareas</h2><p>Actividad del {periodLabel}</p></div><div className="chart-area"><div className="donut" style={{background:`conic-gradient(#735a78 0 ${completed/total*100}%, #c5b3d3 ${completed/total*100}% ${(completed+deprecated)/total*100}%, #f5cbcb ${(completed+deprecated)/total*100}% 100%)`}}><div><strong>{completed+deprecated+pending}</strong><span>Tareas</span></div></div><div className="legend">{data.map(item=><div key={item.label}><span style={{background:item.color}}></span><p>{item.label}<b>{item.value}</b></p></div>)}</div></div></section>
   </div>;
 }
 
@@ -161,7 +184,7 @@ export function App() {
     <div className="sidebar-label">VISTAS</div><nav><button className={page==='board'?'active':''} onClick={()=>setPage('board')}><Kanban width={21} height={21}/><span>Tablero</span><b>{pending}</b></button><button disabled title="Vista semanal de Línea de tiempo, próximamente"><TableRows width={21} height={21}/><span>Semana</span></button><button className={page==='today'?'active':''} onClick={()=>setPage('today')}><CalendarBlank width={21} height={21}/><span>Hoy</span></button></nav>
     <div className="sidebar-label">OPCIONES</div><nav><button className={page==='reports'?'active':''} onClick={()=>setPage('reports')}><ChartBar width={21} height={21}/><span>Reportes</span></button><button disabled title="Filtros aún no disponibles"><SlidersHorizontal width={21} height={21}/><span>Filtros</span></button><button disabled title="Archivo de tareas, próximamente"><Archive width={21} height={21}/><span>Archivo</span><b>{tasks.filter(t=>t.status==='deprecated').length}</b></button></nav>
     <div className="aside-bottom"><button disabled title="Configuración aún no disponible"><Settings width={20} height={20}/><span>Configuración</span></button></div>
-  </aside><main>{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask}/>:<Reports tasks={tasks}/>}</main>
+  </aside><main>{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask}/>:<Reports tasks={tasks} openTask={openTask}/>}</main>
   {modal&&<Modal title={editing?'Editar tarea':'Nueva tarea'} onClose={()=>setModal(false)}><TaskForm task={editing} columns={columns} defaultColumn={defaultColumn} onSave={save} onClose={()=>setModal(false)}/>{editing&&<button className="delete-task" onClick={()=>{setTasks(ts=>ts.filter(t=>t.id!==editing.id));setModal(false)}}><Trash width={17} height={17}/> Eliminar definitivamente</button>}</Modal>}
   </div>;
 }
