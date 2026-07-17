@@ -34,7 +34,7 @@ task_dashboard/
 
 1. **Presentación**
 
-   Los componentes React renderizan las vistas del tablero, Hoy y Reportes. La interfaz utiliza Phosphor Icons y un sistema visual definido en `styles.css`.
+   Los componentes React renderizan las vistas del tablero, Hoy y Reportes. La interfaz utiliza Iconoir y un sistema visual definido en `styles.css`.
 
 2. **Estado de la aplicación**
 
@@ -105,7 +105,7 @@ Una columna contiene un identificador, un nombre visible y un color de estado:
 
 - React 19
 - Vite 6
-- Phosphor Icons
+- Iconoir
 - CSS responsive sin framework adicional
 - `localStorage` para persistencia
 

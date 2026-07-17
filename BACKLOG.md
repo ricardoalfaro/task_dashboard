@@ -16,7 +16,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 - **Estado:** Terminada
 - **Prioridad:** Media
 - **Objetivo:** Diferenciar claramente las funciones disponibles de las que todavía no se pueden utilizar.
-- **Alcance inicial:** Aplicar un estilo visual deshabilitado a opciones como Buscador, Filtros y etiquetas, Deprecadas, Notificaciones y Contraer menú mientras no tengan comportamiento implementado.
+- **Alcance inicial:** Aplicar un estilo visual deshabilitado a opciones como Semana, Filtros, Archivo, Configuración, Compartir y el buscador superior mientras no tengan comportamiento implementado.
 - **Criterios de aceptación:**
   - Las opciones no habilitadas tienen menor contraste y no muestran estados de interacción engañosos.
   - El cursor y los atributos de accesibilidad comunican que la opción está deshabilitada.
@@ -95,10 +95,10 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - Las tareas existentes se migran sin perder información.
   - Las fechas siguen persistiendo en `localStorage`.
 
-#### 6.2. Agregar el selector de vista Kanban / Línea de tiempo
+#### 6.2. Habilitar la navegación Kanban / Línea de tiempo
 
 - **Estado:** Pendiente
-- **Alcance:** Incorporar un control en la cabecera de `Mi tablero` para alternar entre ambas visualizaciones.
+- **Alcance:** Habilitar la opción `Línea de tiempo` del sidebar para acceder a la visualización semanal, manteniendo `Mi tablero` como entrada al Kanban.
 - **Criterios de aceptación:**
   - El cambio de vista no modifica ni duplica tareas.
   - La vista seleccionada se conserva al recargar.
@@ -158,15 +158,14 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.1. Definir arquitectura, proveedor y modelo de datos
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Diseñar las entidades necesarias para tareas, columnas, usuarios y permisos sobre la arquitectura seleccionada.
 - **Decisiones tomadas:**
   - Supabase será la fuente de verdad, usando PostgreSQL, Supabase Auth y Row Level Security.
   - El plan gratuito será suficiente para la primera etapa y se revisará si aumentan el uso o las necesidades de disponibilidad.
   - Notion recibirá copias periódicas unidireccionales, pero no actuará como base principal.
-- **Decisiones pendientes:**
-  - Si cada supervisor tendrá una cuenta individual o si inicialmente se usará un acceso compartido.
-  - Duración de las sesiones y política de cambio o revocación de contraseñas.
+  - Cada supervisor tendrá una cuenta individual para permitir revocación y trazabilidad independientes.
+  - La duración de las sesiones y la política de revocación se definirán durante la subtarea 7.4.
 - **Criterios de aceptación:**
   - Las credenciales y secretos permanecen exclusivamente en el servidor.
   - El modelo contempla los roles `owner` y `viewer`.
@@ -214,6 +213,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - El detalle muestra nombre, descripción, fechas, estado, nivel de esfuerzo y columna.
   - No se renderizan acciones de crear, editar, mover, completar, deprecar o eliminar.
   - La interfaz comunica claramente que el acceso es de solo lectura.
+  - El CTA `Compartir` genera una URL privada y revocable para el reporte cuando esta capacidad sea habilitada.
 
 #### 7.6. Publicar y proteger la aplicación
 
