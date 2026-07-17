@@ -87,6 +87,10 @@ La rama principal puede conectarse mediante la integración Git de Vercel para p
 
 `npm run export:notion` ejecuta una sincronización unidireccional e idempotente desde Supabase. El workflow `notion-export.yml` la programa diariamente y permite lanzarla manualmente o en modo dry-run. La preparación del data source y las variables requeridas están documentadas en `docs/notion-export.md`.
 
+## Verificación continua
+
+El workflow `ci.yml` ejecuta en cada pull request la prueba integral del exportador y el build de producción. Esto evita mezclar cambios que rompan el dashboard o la sincronización programada.
+
 ## Modelo de datos
 
 Una tarea utiliza una estructura similar a esta:
