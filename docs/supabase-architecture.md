@@ -25,6 +25,10 @@ Las políticas RLS aplican los permisos aunque alguien intente llamar directamen
 
 Para la primera versión se recomienda una cuenta individual por supervisor. La política de duración de sesiones y revocación se definirá al implementar autenticación en la subtarea 7.4.
 
+`src/data/authRepository.js` encapsula el inicio y cierre de sesión, observa cambios de sesión y resuelve permisos explícitos (`canRead`, `canWrite`, `canManageAccess`). También permite listar, cambiar y revocar miembros; RLS limita estas operaciones al propietario aunque se invoque la API fuera de la interfaz.
+
+Las cuentas y contraseñas se gestionan exclusivamente mediante Supabase Auth. El dashboard nunca guarda contraseñas ni las incorpora al estado persistente o al bundle.
+
 ## Variables y secretos
 
 El frontend podrá utilizar la URL del proyecto y la clave pública/anónima de Supabase. La clave `service_role` nunca debe incluirse en el bundle del navegador ni guardarse en el repositorio.

@@ -193,7 +193,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.4. Implementar autenticación y permisos por rol
 
-- **Estado:** Pendiente
+- **Estado:** En curso — sesión, permisos y revocación preparados; pendiente conectar la experiencia autenticada
 - **Alcance:** Crear sesiones seguras para el propietario y los supervisores de solo lectura.
 - **Criterios de aceptación:**
   - Un usuario no autenticado no puede consultar tareas ni reportes.
