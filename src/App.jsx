@@ -78,7 +78,11 @@ function AccessSettings() {
 }
 
 function TaskForm({ task, columns, defaultColumn, onSave, onClose }) {
-  const [form, setForm] = useState(task ? {...task,start:task.start||task.due,effort:task.effort||3} : { title:'', description:'', start:'2026-07-14', due:'2026-07-14', columnId:defaultColumn || columns[0].id, effort:3 });
+  const [form, setForm] = useState(() => {
+    if(task) return {...task,start:task.start||task.due,effort:task.effort||3};
+    const today=toISODate(new Date());
+    return {title:'',description:'',start:today,due:today,columnId:defaultColumn||columns[0].id,effort:3};
+  });
   const [dateError,setDateError]=useState('');
   const change = e => setForm({ ...form, [e.target.name]: e.target.value });
   return <form onSubmit={e => { e.preventDefault(); if(form.start>form.due){setDateError('La fecha de inicio no puede ser posterior a la fecha de entrega.');return}setDateError('');if(form.title.trim()) onSave(form); }}>
