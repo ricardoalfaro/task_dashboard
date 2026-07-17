@@ -16,7 +16,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 - **Estado:** Terminada
 - **Prioridad:** Media
 - **Objetivo:** Diferenciar claramente las funciones disponibles de las que todavía no se pueden utilizar.
-- **Alcance inicial:** Aplicar un estilo visual deshabilitado a opciones como Buscador, Filtros y etiquetas, Deprecadas, Notificaciones y Contraer menú mientras no tengan comportamiento implementado.
+- **Alcance inicial:** Aplicar un estilo visual deshabilitado a opciones como Semana, Filtros, Archivo, Configuración, Compartir y el buscador superior mientras no tengan comportamiento implementado.
 - **Criterios de aceptación:**
   - Las opciones no habilitadas tienen menor contraste y no muestran estados de interacción engañosos.
   - El cursor y los atributos de accesibilidad comunican que la opción está deshabilitada.
@@ -38,7 +38,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 ### 3. Ver las tareas terminadas desde Reportes
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Prioridad:** Alta
 - **Objetivo:** Pasar de una métrica resumida a la lista concreta de logros del periodo.
 - **Alcance inicial:** Permitir abrir la métrica de tareas terminadas y mostrar las tareas incluidas en el cálculo actual.
@@ -50,7 +50,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 ### 4. Agregar periodos de día, semana, mes y trimestre a Reportes
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Prioridad:** Alta
 - **Objetivo:** Consultar los logros con diferentes niveles de detalle temporal.
 - **Alcance inicial:** Reemplazar el filtro exclusivo de mes y año por un selector de periodo con las opciones Día, Semana, Mes y Trimestre (`Q`).
@@ -76,7 +76,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 ### 6. Agregar una vista semanal de Línea de tiempo
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Prioridad:** Alta
 - **Objetivo:** Permitir planificar y revisar las mismas tareas tanto en Kanban como en una distribución temporal semanal.
 - **Principios acordados:**
@@ -95,10 +95,10 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - Las tareas existentes se migran sin perder información.
   - Las fechas siguen persistiendo en `localStorage`.
 
-#### 6.2. Agregar el selector de vista Kanban / Línea de tiempo
+#### 6.2. Habilitar la navegación Kanban / Línea de tiempo
 
-- **Estado:** Pendiente
-- **Alcance:** Incorporar un control en la cabecera de `Mi tablero` para alternar entre ambas visualizaciones.
+- **Estado:** Terminada
+- **Alcance:** Habilitar la opción `Línea de tiempo` del sidebar para acceder a la visualización semanal, manteniendo `Mi tablero` como entrada al Kanban.
 - **Criterios de aceptación:**
   - El cambio de vista no modifica ni duplica tareas.
   - La vista seleccionada se conserva al recargar.
@@ -106,7 +106,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.3. Construir la navegación semanal
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Mostrar una semana de lunes a domingo con acciones para avanzar, retroceder y volver a la semana actual.
 - **Criterios de aceptación:**
   - La interfaz comunica claramente las fechas inicial y final de la semana visible.
@@ -116,7 +116,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.4. Representar las tareas en la Línea de tiempo
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Dibujar cada tarea desde su fecha de inicio hasta su fecha de entrega dentro de la semana seleccionada.
 - **Criterios de aceptación:**
   - Las tareas aparecen en los días que les corresponden.
@@ -126,7 +126,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.5. Mostrar correctamente tareas terminadas
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Reflejar el estado terminado de forma diferente en cada visualización.
 - **Criterios de aceptación:**
   - Una tarea terminada permanece en `DONE` en Kanban.
@@ -136,7 +136,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.6. Permitir planificación directa desde la Línea de tiempo
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Permitir mover o ajustar tareas temporalmente desde la vista semanal después de estabilizar la visualización inicial.
 - **Criterios de aceptación:**
   - Una tarea puede cambiar de día conservando su duración.
@@ -158,15 +158,14 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.1. Definir arquitectura, proveedor y modelo de datos
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Diseñar las entidades necesarias para tareas, columnas, usuarios y permisos sobre la arquitectura seleccionada.
 - **Decisiones tomadas:**
   - Supabase será la fuente de verdad, usando PostgreSQL, Supabase Auth y Row Level Security.
   - El plan gratuito será suficiente para la primera etapa y se revisará si aumentan el uso o las necesidades de disponibilidad.
   - Notion recibirá copias periódicas unidireccionales, pero no actuará como base principal.
-- **Decisiones pendientes:**
-  - Si cada supervisor tendrá una cuenta individual o si inicialmente se usará un acceso compartido.
-  - Duración de las sesiones y política de cambio o revocación de contraseñas.
+  - Cada supervisor tendrá una cuenta individual para permitir revocación y trazabilidad independientes.
+  - La duración de las sesiones y la política de revocación se definirán durante la subtarea 7.4.
 - **Criterios de aceptación:**
   - Las credenciales y secretos permanecen exclusivamente en el servidor.
   - El modelo contempla los roles `owner` y `viewer`.
@@ -174,7 +173,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.2. Persistir tareas y columnas en la nube
 
-- **Estado:** Pendiente
+- **Estado:** En curso — carga y sincronización implementadas; pendiente verificar contra la instancia Supabase
 - **Alcance:** Reemplazar `localStorage` como fuente principal por una API y base de datos remota.
 - **Criterios de aceptación:**
   - Las tareas, columnas personalizadas, posiciones, esfuerzo, fechas y estados persisten entre dispositivos.
@@ -184,7 +183,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.3. Migrar los datos locales existentes
 
-- **Estado:** Pendiente
+- **Estado:** En curso — importación automática idempotente implementada; pendiente ejecutarla contra la instancia
 - **Alcance:** Importar a la base de datos las tareas y columnas actualmente almacenadas en el navegador de Ricardo.
 - **Criterios de aceptación:**
   - La migración no duplica ni pierde tareas.
@@ -194,7 +193,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.4. Implementar autenticación y permisos por rol
 
-- **Estado:** Pendiente
+- **Estado:** En curso — experiencia autenticada, roles y administración de accesos conectados; pendiente verificar contra la instancia
 - **Alcance:** Crear sesiones seguras para el propietario y los supervisores de solo lectura.
 - **Criterios de aceptación:**
   - Un usuario no autenticado no puede consultar tareas ni reportes.
@@ -205,7 +204,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.5. Crear la experiencia externa de Reportes
 
-- **Estado:** Pendiente
+- **Estado:** En curso — portal de solo lectura implementado; pendiente validarlo con una cuenta `viewer`
 - **Alcance:** Ofrecer al perfil `viewer` una entrada enfocada en seguimiento, sin controles de edición ni navegación operativa innecesaria.
 - **Criterios de aceptación:**
   - Al iniciar sesión, el supervisor llega directamente a Reportes.
@@ -214,10 +213,11 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - El detalle muestra nombre, descripción, fechas, estado, nivel de esfuerzo y columna.
   - No se renderizan acciones de crear, editar, mover, completar, deprecar o eliminar.
   - La interfaz comunica claramente que el acceso es de solo lectura.
+  - El CTA `Compartir` genera una URL privada y revocable para el reporte cuando esta capacidad sea habilitada.
 
 #### 7.6. Publicar y proteger la aplicación
 
-- **Estado:** Pendiente
+- **Estado:** En curso — configuración Vercel y protección por sesión preparadas; pendiente enlazar proyecto, variables y desplegar
 - **Alcance:** Desplegar la aplicación y los servicios necesarios en una URL estable, incorporando la mejora 2.
 - **Criterios de aceptación:**
   - La aplicación cuenta con una URL pública estable y HTTPS.
@@ -228,7 +228,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.7. Exportar periódicamente una copia de seguimiento a Notion
 
-- **Estado:** Pendiente
+- **Estado:** En curso — rutina y agenda idempotentes implementadas; pendiente configurar secretos y validar la primera exportación
 - **Alcance:** Sincronizar periódicamente desde Supabase hacia una base de datos de Notion para mantener una copia consultable dentro de las herramientas de la empresa.
 - **Principios acordados:**
   - Supabase continúa siendo la única fuente de verdad.
@@ -244,6 +244,18 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - Cada ejecución registra inicio, término, cantidad de registros creados o actualizados y errores.
   - Un fallo parcial puede reintentarse sin duplicar información.
   - La exportación también puede ejecutarse manualmente para validación o recuperación.
+
+### 8. Incorporar apariencia clara, oscura y automática
+
+- **Estado:** Terminada
+- **Prioridad:** Media
+- **Objetivo:** Adaptar la interfaz a la preferencia visual del sistema y permitir una selección manual persistente.
+- **Criterios de aceptación:**
+  - La apariencia inicial sigue la preferencia clara u oscura del sistema operativo.
+  - Un único control alterna entre Sistema, Claro y Oscuro.
+  - La preferencia manual persiste al recargar.
+  - El control muestra etiqueta con el sidebar abierto y solo el icono al estar colapsado.
+  - Las vistas principales, tarjetas, formularios, modales y reportes conservan contraste suficiente en modo oscuro.
 
 ## Ruta de implementación recomendada
 

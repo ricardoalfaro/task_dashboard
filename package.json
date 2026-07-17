@@ -6,14 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "export:notion": "node scripts/export-to-notion.mjs",
+    "test:notion-export": "node --test scripts/export-to-notion.test.mjs"
   },
   "dependencies": {
-    "@phosphor-icons/react": "^2.1.10",
+    "@supabase/supabase-js": "^2.110.7",
     "@vitejs/plugin-react": "5.0.4",
-    "vite": "6.4.2",
+    "iconoir-react": "^7.11.1",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
-  },
-  "devDependencies": {}
+    "react-dom": "19.2.0",
+    "vite": "6.4.2"
+  }
 }

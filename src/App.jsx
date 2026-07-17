@@ -1,16 +1,23 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Archive, ArrowLeft, ArrowRight, Bell, CalendarBlank, CaretDown, ChartBar,
-  Check, ClipboardText, DotsThree, Kanban, MagnifyingGlass, Plus,
-  Lightning, SlidersHorizontal, Trash, X
-} from '@phosphor-icons/react';
+  Archive,
+  Calendar as CalendarBlank, Reports as ChartBar, Check, TaskList as ClipboardText,
+  MoreHoriz as DotsThree, KanbanBoard as Kanban, Search as MagnifyingGlass,
+  Plus, Flash as Lightning, FilterList as SlidersHorizontal, Trash, Xmark as X,
+  SidebarCollapse, SidebarExpand, TableRows, Settings, ShareAndroid,
+  Computer, HalfMoon, SunLight, NavArrowLeft, NavArrowRight, LogOut
+} from 'iconoir-react';
+import { authRepository } from './data/authRepository.js';
+import { dashboardRepository } from './data/dashboardRepository.js';
+import { hasCompletedLocalMigration, migrateLocalDashboard } from './data/localMigration.js';
+import { supabaseConfig } from './lib/supabase.js';
 
 const initialColumns = [
-  { id: 'todo', title: 'TO-DO', color: '#43637e' },
-  { id: 'doing', title: 'DOING', color: '#65dcd5' },
-  { id: 'done', title: 'DONE', color: '#321e48' },
+  { id: 'todo', title: 'TO-DO', color: '#f5cbcb' },
+  { id: 'doing', title: 'DOING', color: '#ffe2e2' },
+  { id: 'done', title: 'DONE', color: '#c5b3d3' },
 ];
-const columnPalette = { todo:'#43637e', doing:'#65dcd5', done:'#321e48' };
+const columnPalette = { todo:'#f5cbcb', doing:'#ffe2e2', done:'#c5b3d3' };
 
 const initialTasks = [
   { id: 1, columnId: 'todo', title: 'Preparar presentación semanal', description: 'Resumir los avances, bloqueos y próximos hitos del equipo.', due: '2026-07-14', status: 'active', createdAt: '2026-07-03' },
@@ -26,12 +33,48 @@ const initialTasks = [
 const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 const shortMonths = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const fmt = (date) => { const d = new Date(`${date}T12:00:00`); return `${d.getDate()} ${shortMonths[d.getMonth()]}`; };
+const toISODate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+const parseISODate = value => new Date(`${value}T12:00:00`);
+const addDays = (date,days) => {const next=new Date(date);next.setDate(next.getDate()+days);return next};
+const getPeriodRange = (type,anchorValue) => {
+  const anchor=parseISODate(anchorValue);
+  let start=new Date(anchor), end=new Date(anchor);
+  if(type==='week'){const offset=(anchor.getDay()+6)%7;start=addDays(anchor,-offset);end=addDays(start,6)}
+  if(type==='month'){start=new Date(anchor.getFullYear(),anchor.getMonth(),1,12);end=new Date(anchor.getFullYear(),anchor.getMonth()+1,0,12)}
+  if(type==='quarter'){const firstMonth=Math.floor(anchor.getMonth()/3)*3;start=new Date(anchor.getFullYear(),firstMonth,1,12);end=new Date(anchor.getFullYear(),firstMonth+3,0,12)}
+  return {start:toISODate(start),end:toISODate(end)};
+};
+const formatPeriodDate = value => {const date=parseISODate(value);return `${date.getDate()} ${shortMonths[date.getMonth()]} ${date.getFullYear()}`};
+const differenceInDays = (from,to) => Math.round((parseISODate(to)-parseISODate(from))/86400000);
 
 function Modal({ title, onClose, children }) {
   return <div className="modal-backdrop" onMouseDown={onClose}><section className="modal" onMouseDown={e => e.stopPropagation()}>
-    <header><h2>{title}</h2><button className="icon-button" onClick={onClose} aria-label="Cerrar"><X size={20}/></button></header>
+    <header><h2>{title}</h2><button className="icon-button" onClick={onClose} aria-label="Cerrar"><X width={20} height={20}/></button></header>
     {children}
   </section></div>;
+}
+
+function AuthScreen({ onSignedIn }) {
+  const [form,setForm]=useState({email:'',password:''});
+  const [error,setError]=useState('');
+  const [submitting,setSubmitting]=useState(false);
+  const submit=async event=>{event.preventDefault();setSubmitting(true);setError('');try{await authRepository.signIn(form.email,form.password);onSignedIn?.()}catch(reason){setError(reason.message)}finally{setSubmitting(false)}};
+  return <main className="auth-view"><section className="auth-card"><div className="auth-mark"><Kanban width={25} height={25}/></div><p className="eyebrow">WORKSPACE TASK DASHBOARD</p><h1>Ingresa a tu espacio</h1><p>Accede al tablero o al reporte que Ricardo compartió contigo.</p><form onSubmit={submit}><label>Correo<input autoFocus required type="email" autoComplete="email" value={form.email} onChange={event=>setForm({...form,email:event.target.value})}/></label><label>Contraseña<input required type="password" autoComplete="current-password" value={form.password} onChange={event=>setForm({...form,password:event.target.value})}/></label>{error&&<p className="auth-error" role="alert">{error}</p>}<button className="primary" disabled={submitting}>{submitting?'Ingresando…':'Ingresar'}</button></form></section></main>;
+}
+
+function ReadOnlyTask({ task, columnTitle }) {
+  return <div className="readonly-task"><span className={`today-status ${task.status}`}>{task.status==='completed'?'Terminada':task.status==='deprecated'?'Archivada':'Activa'}</span><h3>{task.title}</h3><p>{task.description||'Sin descripción.'}</p><dl><div><dt>Inicio</dt><dd>{formatPeriodDate(task.start||task.due)}</dd></div><div><dt>Entrega</dt><dd>{formatPeriodDate(task.due)}</dd></div><div><dt>Esfuerzo</dt><dd>{task.effort||3} de 5</dd></div><div><dt>Columna</dt><dd>{columnTitle||'Sin columna'}</dd></div></dl></div>;
+}
+
+function AccessSettings() {
+  const [members,setMembers]=useState([]);
+  const [form,setForm]=useState({userId:'',role:'viewer'});
+  const [state,setState]=useState({loading:true,error:''});
+  const load=async()=>{setState({loading:true,error:''});try{setMembers(await authRepository.listMembers(supabaseConfig.boardId));setState({loading:false,error:''})}catch(error){setState({loading:false,error:error.message})}};
+  useEffect(()=>{load()},[]);
+  const save=async event=>{event.preventDefault();setState(current=>({...current,error:''}));try{await authRepository.setMemberRole(supabaseConfig.boardId,form.userId,form.role);setForm({userId:'',role:'viewer'});await load()}catch(error){setState({loading:false,error:error.message})}};
+  const revoke=async userId=>{setState(current=>({...current,error:''}));try{await authRepository.revokeMember(supabaseConfig.boardId,userId);await load()}catch(error){setState({loading:false,error:error.message})}};
+  return <div className="settings-view"><header><p className="eyebrow">CONFIGURACIÓN</p><h1>Acceso al reporte</h1><p className="subtitle">Administra quién puede consultar el seguimiento externo.</p></header><section className="settings-panel"><div><h2>Agregar acceso</h2><p>El usuario debe existir previamente en Supabase Auth. Usa su ID y asigna el nivel de acceso.</p><form onSubmit={save}><label>ID del usuario<input required value={form.userId} onChange={event=>setForm({...form,userId:event.target.value})} placeholder="UUID de Supabase Auth" pattern="[0-9a-fA-F-]{36}"/></label><label>Rol<select value={form.role} onChange={event=>setForm({...form,role:event.target.value})}><option value="viewer">Solo lectura</option><option value="owner">Propietario</option></select></label><button className="primary">Guardar acceso</button></form></div><div><div className="settings-members-title"><h2>Personas con acceso</h2><span>{members.length}</span></div>{state.error&&<p className="auth-error" role="alert">{state.error}</p>}{state.loading?<p className="settings-empty">Cargando accesos…</p>:members.length?<div className="member-list">{members.map(member=><article key={member.user_id}><div><b>{member.user_id}</b><span>{member.role==='viewer'?'Solo lectura':'Propietario'}</span></div><div><select aria-label={`Rol de ${member.user_id}`} value={member.role} onChange={event=>authRepository.setMemberRole(supabaseConfig.boardId,member.user_id,event.target.value).then(load).catch(error=>setState({loading:false,error:error.message}))}><option value="viewer">Viewer</option><option value="owner">Owner</option></select><button onClick={()=>revoke(member.user_id)} className="member-revoke"><Trash width={16} height={16}/> Revocar</button></div></article>)}</div>:<p className="settings-empty">Aún no hay supervisores agregados.</p>}</div></section></div>;
 }
 
 function TaskForm({ task, columns, defaultColumn, onSave, onClose }) {
@@ -53,10 +96,10 @@ function TaskForm({ task, columns, defaultColumn, onSave, onClose }) {
 function TaskCard({ task, onEdit, onComplete, onDeprecate, onDragStart }) {
   const overdue = task.status === 'active' && task.due < '2026-07-14';
   return <article className={`task-card ${task.status}`} draggable onDragStart={e=>onDragStart(e, task.id)} onClick={()=>onEdit(task)}>
-    <div className="task-top"><button className="check-button" onClick={e=>{e.stopPropagation();onComplete(task)}} aria-label="Completar tarea">{task.status==='completed'&&<Check size={14} weight="bold"/>}</button>
-      <button className="more" onClick={e=>{e.stopPropagation();onDeprecate(task)}} title="Deprecar tarea"><DotsThree size={22}/></button></div>
+    <div className="task-top"><button className="check-button" onClick={e=>{e.stopPropagation();onComplete(task)}} aria-label="Completar tarea">{task.status==='completed'&&<Check width={14} height={14} strokeWidth={2.2}/>}</button>
+      <button className="more" onClick={e=>{e.stopPropagation();onDeprecate(task)}} title="Deprecar tarea"><DotsThree width={22} height={22}/></button></div>
     <h3>{task.title}</h3><p>{task.description}</p>
-    <div className={`due ${overdue?'overdue':''}`}><CalendarBlank size={16}/><span>{overdue?'Venció ':''}{fmt(task.due)}</span></div>
+    <div className={`due ${overdue?'overdue':''}`}><CalendarBlank width={16} height={16}/><span>{overdue?'Venció ':''}{fmt(task.due)}</span></div>
   </article>;
 }
 
@@ -82,84 +125,138 @@ function Board({ columns, tasks, setTasks, setColumns, openTask, boardTitle, set
   const [newColumn, setNewColumn] = useState(false);
   const [columnMenu,setColumnMenu]=useState(null);
   const fixedColumnIds=['todo','doing','done'];
-  const moveTask = (taskId, columnId) => setTasks(items=>items.map(t=>t.id===taskId?{...t,columnId,status:columnId==='done'?'completed':'active',completedAt:columnId==='done'?'2026-07-14':undefined}:t));
-  const complete = task => setTasks(items=>items.map(t=>t.id===task.id?{...t,columnId:'done',status:'completed',completedAt:'2026-07-14'}:t));
+  const todoColumnId=columns.find(column=>column.slug==='todo'||column.id==='todo')?.id;
+  const doneColumnId=columns.find(column=>column.slug==='done'||column.id==='done')?.id;
+  const isFixedColumn=column=>Boolean(column?.isFixed)||fixedColumnIds.includes(column?.id);
+  const moveTask = (taskId, columnId) => setTasks(items=>items.map(t=>t.id===taskId?{...t,columnId,status:columnId===doneColumnId?'completed':'active',completedAt:columnId===doneColumnId?new Date().toISOString():undefined}:t));
+  const complete = task => setTasks(items=>items.map(t=>t.id===task.id?{...t,columnId:doneColumnId,status:'completed',completedAt:new Date().toISOString()}:t));
   const deprecate = task => setTasks(items=>items.map(t=>t.id===task.id?{...t,status:'deprecated',deprecatedAt:'2026-07-14'}:t));
   const renameColumn = (columnId,title) => setColumns(items=>items.map(column=>column.id===columnId?{...column,title}:column));
-  const reorderColumn = (draggedId,targetId) => setColumns(items=>{if(draggedId===targetId||fixedColumnIds.includes(draggedId))return items;const dragged=items.find(column=>column.id===draggedId);if(!dragged)return items;const without=items.filter(column=>column.id!==draggedId);const targetIndex=without.findIndex(column=>column.id===targetId);without.splice(targetIndex<0?without.length:targetIndex,0,dragged);return without});
-  const deleteColumn = columnId => {if(fixedColumnIds.includes(columnId))return;setTasks(items=>items.map(task=>task.columnId===columnId?{...task,columnId:'todo',status:'active',completedAt:undefined}:task));setColumns(items=>items.filter(column=>column.id!==columnId));setColumnMenu(null)};
+  const reorderColumn = (draggedId,targetId) => setColumns(items=>{if(draggedId===targetId||isFixedColumn(items.find(column=>column.id===draggedId)))return items;const dragged=items.find(column=>column.id===draggedId);if(!dragged)return items;const without=items.filter(column=>column.id!==draggedId);const targetIndex=without.findIndex(column=>column.id===targetId);without.splice(targetIndex<0?without.length:targetIndex,0,dragged);return without});
+  const deleteColumn = columnId => {if(isFixedColumn(columns.find(column=>column.id===columnId)))return;setTasks(items=>items.map(task=>task.columnId===columnId?{...task,columnId:todoColumnId,status:'active',completedAt:undefined}:task));setColumns(items=>items.filter(column=>column.id!==columnId));setColumnMenu(null)};
   const handleColumnDrop = (event,columnId) => {event.preventDefault();event.stopPropagation();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn){reorderColumn(draggedColumn,columnId);return}const taskId=Number(event.dataTransfer.getData('text/task'));if(taskId)moveTask(taskId,columnId)};
-  return <div className="board-wrap"><div className="board-header"><div><p className="eyebrow">ESPACIO DE TRABAJO</p><EditableBoardTitle value={boardTitle} onChange={setBoardTitle}/><p className="subtitle">Organiza el trabajo de hoy y mantén el foco.</p></div><button className="primary add-top" onClick={()=>openTask(null)}><Plus size={18} weight="bold"/> Nueva tarea</button></div>
-    <div className="board" role="list">{columns.map(col=>{const list=tasks.filter(t=>t.columnId===col.id&&t.status!=='deprecated');const isFixed=fixedColumnIds.includes(col.id);return <section className={`column ${isFixed?'fixed-column':'custom-column'}`} key={col.id} draggable={!isFixed} onDragStart={event=>{if(!isFixed)event.dataTransfer.setData('text/column',col.id)}} onDragOver={e=>e.preventDefault()} onDrop={event=>handleColumnDrop(event,col.id)}>
-      <header className="column-header"><div className="column-title"><span style={{background:col.color}}></span><EditableColumnTitle value={col.title} onChange={title=>renameColumn(col.id,title)}/><b>{list.length}</b></div>{!isFixed&&<div className="column-menu-wrap"><button className="icon-button" onClick={()=>setColumnMenu(current=>current===col.id?null:col.id)} aria-label={`Opciones de ${col.title}`} aria-expanded={columnMenu===col.id}><DotsThree size={22}/></button>{columnMenu===col.id&&<div className="column-menu"><button onClick={()=>deleteColumn(col.id)}><Trash size={16}/> Eliminar columna</button></div>}</div>}</header>
+  return <div className="board-wrap"><div className="board-header"><div><p className="eyebrow">ESPACIO DE TRABAJO</p><EditableBoardTitle value={boardTitle} onChange={setBoardTitle}/><p className="subtitle">Organiza el trabajo de hoy y mantén el foco.</p></div><button className="primary add-top" onClick={()=>openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button></div>
+    <div className="board" role="list">{columns.map(col=>{const list=tasks.filter(t=>t.columnId===col.id&&t.status!=='deprecated');const isFixed=isFixedColumn(col);return <section className={`column ${isFixed?'fixed-column':'custom-column'}`} key={col.id} draggable={!isFixed} onDragStart={event=>{if(!isFixed)event.dataTransfer.setData('text/column',col.id)}} onDragOver={e=>e.preventDefault()} onDrop={event=>handleColumnDrop(event,col.id)}>
+      <header className="column-header"><div className="column-title"><span style={{background:col.color}}></span><EditableColumnTitle value={col.title} onChange={title=>renameColumn(col.id,title)}/><b>{list.length}</b></div>{!isFixed&&<div className="column-menu-wrap"><button className="icon-button" onClick={()=>setColumnMenu(current=>current===col.id?null:col.id)} aria-label={`Opciones de ${col.title}`} aria-expanded={columnMenu===col.id}><DotsThree width={22} height={22}/></button>{columnMenu===col.id&&<div className="column-menu"><button onClick={()=>deleteColumn(col.id)}><Trash width={16} height={16}/> Eliminar columna</button></div>}</div>}</header>
       <div className="task-list">{list.map(t=><TaskCard key={t.id} task={t} onEdit={openTask} onComplete={complete} onDeprecate={deprecate} onDragStart={(e,id)=>{e.stopPropagation();e.dataTransfer.setData('text/task',id)}}/>)}
-      <button className="add-card" onClick={()=>openTask(null,col.id)}><Plus size={18}/> Añadir tarea</button></div></section>})}
-      <section className="add-column" onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn)reorderColumn(draggedColumn,null)}}>{newColumn?<form onSubmit={e=>{e.preventDefault();const v=e.currentTarget.elements.title.value.trim();if(v){setColumns(c=>[...c,{id:`column-${Date.now()}`,title:v.toUpperCase(),color:'#65dcd5'}]);setNewColumn(false)}}}><input name="title" autoFocus placeholder="Nombre de la columna"/><button className="primary">Añadir</button><button type="button" className="icon-button" onClick={()=>setNewColumn(false)}><X size={20}/></button></form>:<button onClick={()=>setNewColumn(true)}><Plus size={18}/> Añadir columna</button>}</section>
+      <button className="add-card" onClick={()=>openTask(null,col.id)}><Plus width={18} height={18}/> Añadir tarea</button></div></section>})}
+      <section className="add-column" onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn)reorderColumn(draggedColumn,null)}}>{newColumn?<form onSubmit={e=>{e.preventDefault();const v=e.currentTarget.elements.title.value.trim();if(v){setColumns(c=>[...c,{id:crypto.randomUUID(),slug:`column-${Date.now()}`,title:v.toUpperCase(),color:'#c5b3d3',isFixed:false}]);setNewColumn(false)}}}><input name="title" autoFocus placeholder="Nombre de la columna"/><button className="primary">Añadir</button><button type="button" className="icon-button" onClick={()=>setNewColumn(false)}><X width={20} height={20}/></button></form>:<button onClick={()=>setNewColumn(true)}><Plus width={18} height={18}/> Añadir columna</button>}</section>
     </div></div>;
 }
 
-function Reports({ tasks }) {
-  const [month,setMonth]=useState(6), [year,setYear]=useState(2026);
-  const inPeriod=(date)=>date&&new Date(`${date}T12:00:00`).getMonth()===month&&new Date(`${date}T12:00:00`).getFullYear()===year;
-  const completed=tasks.filter(t=>t.status==='completed'&&inPeriod(t.completedAt)).length;
-  const deprecated=tasks.filter(t=>t.status==='deprecated'&&inPeriod(t.deprecatedAt)).length;
-  const pending=tasks.filter(t=>t.status==='active'&&inPeriod(t.due)).length;
-  const periodTasks=tasks.filter(t=>inPeriod(t.status==='completed'?t.completedAt:t.status==='deprecated'?t.deprecatedAt:t.due));
+function Timeline({ tasks, setTasks, openTask }) {
+  const today=toISODate(new Date());
+  const [anchorDate,setAnchorDate]=useState(today);
+  const range=useMemo(()=>getPeriodRange('week',anchorDate),[anchorDate]);
+  const days=useMemo(()=>Array.from({length:7},(_,index)=>toISODate(addDays(parseISODate(range.start),index))),[range.start]);
+  const visibleTasks=tasks.filter(task=>task.status!=='deprecated'&&(task.start||task.due)<=range.end&&task.due>=range.start).sort((a,b)=>(a.start||a.due).localeCompare(b.start||b.due)||a.due.localeCompare(b.due));
+  const moveWeek=offset=>setAnchorDate(toISODate(addDays(parseISODate(anchorDate),offset*7)));
+  const moveTaskByDays=(taskId,offset)=>setTasks(items=>items.map(task=>String(task.id)===String(taskId)?{...task,start:toISODate(addDays(parseISODate(task.start||task.due),offset)),due:toISODate(addDays(parseISODate(task.due),offset))}:task));
+  const moveTaskToDay=(taskId,day)=>{const task=tasks.find(item=>String(item.id)===String(taskId));if(task)moveTaskByDays(taskId,differenceInDays(task.start||task.due,day))};
+  return <div className="timeline-view"><div className="timeline-header"><div><p className="eyebrow">PLANIFICACIÓN SEMANAL</p><h1>Semana</h1><p className="subtitle">Distribuye el trabajo y revisa la carga de cada día.</p></div><button className="primary" onClick={()=>openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button></div>
+    <section className="timeline-panel"><header className="timeline-toolbar"><div><button className="icon-button" onClick={()=>moveWeek(-1)} aria-label="Semana anterior"><NavArrowLeft width={20} height={20}/></button><button className="timeline-today" onClick={()=>setAnchorDate(today)}>Esta semana</button><button className="icon-button" onClick={()=>moveWeek(1)} aria-label="Semana siguiente"><NavArrowRight width={20} height={20}/></button></div><strong>{formatPeriodDate(range.start)} — {formatPeriodDate(range.end)}</strong></header>
+      <div className="timeline-scroll"><div className="timeline-calendar"><div className="timeline-days">{days.map(day=><div className={day===today?'is-today':''} key={day} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const taskId=event.dataTransfer.getData('text/timeline-task');if(taskId)moveTaskToDay(taskId,day)}}><span>{parseISODate(day).toLocaleDateString('es-CL',{weekday:'short'}).replace('.','')}</span><b>{parseISODate(day).getDate()}</b></div>)}</div>
+        <div className="timeline-body">{visibleTasks.length?visibleTasks.map(task=>{const taskStart=task.start||task.due;const clippedStart=taskStart>range.start?taskStart:range.start;const clippedEnd=task.due<range.end?task.due:range.end;const startColumn=differenceInDays(range.start,clippedStart)+1;const endColumn=differenceInDays(range.start,clippedEnd)+2;return <div className="timeline-task-row" key={task.id}><div draggable onDragStart={event=>event.dataTransfer.setData('text/timeline-task',task.id)} className={`timeline-task ${task.status==='completed'?'completed':''} ${taskStart<range.start?'continues-before':''} ${task.due>range.end?'continues-after':''}`} style={{gridColumn:`${startColumn} / ${endColumn}`}} title={`${task.title}: ${formatPeriodDate(taskStart)} — ${formatPeriodDate(task.due)}`}><button className="timeline-shift" onClick={()=>moveTaskByDays(task.id,-1)} aria-label={`Mover ${task.title} un día atrás`}><NavArrowLeft width={15} height={15}/></button><button className="timeline-task-open" onClick={()=>openTask(task)}><span>{task.title}</span><b>E{task.effort||3}</b></button><button className="timeline-shift" onClick={()=>moveTaskByDays(task.id,1)} aria-label={`Mover ${task.title} un día adelante`}><NavArrowRight width={15} height={15}/></button></div></div>}):<div className="timeline-empty"><CalendarBlank width={30} height={30}/><b>Sin tareas esta semana</b><span>Navega a otra semana o crea una nueva tarea.</span></div>}</div>
+      </div></div>
+    </section>
+  </div>;
+}
+
+function Reports({ tasks, openTask, canShare=false }) {
+  const [periodType,setPeriodType]=useState('month');
+  const [anchorDate,setAnchorDate]=useState('2026-07-14');
+  const [showCompleted,setShowCompleted]=useState(false);
+  const [shareState,setShareState]=useState('');
+  const range=useMemo(()=>getPeriodRange(periodType,anchorDate),[periodType,anchorDate]);
+  const inPeriod=date=>date&&date.slice(0,10)>=range.start&&date.slice(0,10)<=range.end;
+  const completedTasks=tasks.filter(task=>task.status==='completed'&&inPeriod(task.completedAt));
+  const completed=completedTasks.length;
+  const deprecated=tasks.filter(task=>task.status==='deprecated'&&inPeriod(task.deprecatedAt)).length;
+  const pending=tasks.filter(task=>task.status==='active'&&inPeriod(task.due)).length;
+  const periodTasks=tasks.filter(task=>inPeriod(task.status==='completed'?task.completedAt:task.status==='deprecated'?task.deprecatedAt:task.due));
   const effortAverage=periodTasks.length?periodTasks.reduce((sum,task)=>sum+(Number(task.effort)||3),0)/periodTasks.length:0;
   const effortCounts=[1,2,3,4,5].map(level=>({level,count:periodTasks.filter(task=>(Number(task.effort)||3)===level).length}));
   const maxEffortCount=Math.max(...effortCounts.map(item=>item.count),1);
   const total=Math.max(completed+deprecated+pending,1);
-  const data=[{label:'Terminadas',value:completed,color:'#321e48',icon:Check},{label:'Deprecadas',value:deprecated,color:'#43637e',icon:Archive},{label:'Pendientes',value:pending,color:'#65dcd5',icon:ClipboardText}];
-  return <div className="reports"><div className="reports-header"><div><p className="eyebrow">RESUMEN DE ACTIVIDAD</p><h1>Reportes</h1><p className="subtitle">Una vista clara de tu ritmo de trabajo.</p></div><div className="filters"><select value={month} onChange={e=>setMonth(Number(e.target.value))}>{months.map((m,i)=><option key={m} value={i}>{m[0].toUpperCase()+m.slice(1)}</option>)}</select><select value={year} onChange={e=>setYear(Number(e.target.value))}>{[2024,2025,2026,2027].map(y=><option key={y}>{y}</option>)}</select></div></div>
-    <div className="report-cards">{data.map(d=><article key={d.label}><div className="metric-icon" style={{color:d.color,background:`${d.color}14`}}><d.icon size={22}/></div><span>{d.label}</span><strong>{d.value}</strong><small>{Math.round(d.value/total*100)}% del total del mes</small></article>)}</div>
-    <section className="effort-panel"><div className="effort-summary"><div className="metric-icon"><Lightning size={22}/></div><div><p className="eyebrow">NIVEL DE ESFUERZO</p><h2>{effortAverage?effortAverage.toFixed(1):'—'}<span> / 5 promedio</span></h2><p>{periodTasks.length} {periodTasks.length===1?'tarea considerada':'tareas consideradas'} en el período</p></div></div><div className="effort-bars">{effortCounts.map(item=><div key={item.level}><span>{item.level}</span><div><i style={{width:`${item.count/maxEffortCount*100}%`}}></i></div><b>{item.count}</b></div>)}</div></section>
-    <section className="report-panel"><div><p className="eyebrow">DISTRIBUCIÓN</p><h2>Estado de las tareas</h2><p>Actividad en {months[month]} de {year}</p></div><div className="chart-area"><div className="donut" style={{background:`conic-gradient(#321e48 0 ${completed/total*100}%, #43637e ${completed/total*100}% ${(completed+deprecated)/total*100}%, #65dcd5 ${(completed+deprecated)/total*100}% 100%)`}}><div><strong>{completed+deprecated+pending}</strong><span>Tareas</span></div></div><div className="legend">{data.map(d=><div key={d.label}><span style={{background:d.color}}></span><p>{d.label}<b>{d.value}</b></p></div>)}</div></div></section>
+  const data=[{label:'Terminadas',value:completed,color:'#735a78',icon:Check},{label:'Deprecadas',value:deprecated,color:'#c5b3d3',icon:Archive},{label:'Pendientes',value:pending,color:'#f5cbcb',icon:ClipboardText}];
+  const anchor=parseISODate(anchorDate);
+  const quarter=Math.floor(anchor.getMonth()/3)+1;
+  const years=[2024,2025,2026,2027];
+  const periodLabel=range.start===range.end?formatPeriodDate(range.start):`${formatPeriodDate(range.start)} — ${formatPeriodDate(range.end)}`;
+  const setQuarter=value=>setAnchorDate(`${anchor.getFullYear()}-${String((Number(value)-1)*3+1).padStart(2,'0')}-01`);
+  const setPeriodYear=value=>setAnchorDate(`${value}-${String(anchor.getMonth()+1).padStart(2,'0')}-01`);
+  const shareReport=async()=>{try{await navigator.clipboard.writeText(window.location.origin);setShareState('Enlace copiado')}catch{setShareState('No se pudo copiar')}};
+  return <div className="reports"><div className="reports-header"><div><p className="eyebrow">RESUMEN DE ACTIVIDAD</p><h1>Reportes</h1><p className="subtitle">Una vista clara de tu ritmo de trabajo.</p></div><div className="reports-controls"><button className="share-report" disabled={!canShare} onClick={shareReport} title={canShare?'Copiar URL privada del reporte':'Disponible al conectar el acceso externo'}><ShareAndroid width={18} height={18}/> {shareState||'Compartir'}</button><div className="period-controls"><select aria-label="Tipo de período" value={periodType} onChange={event=>setPeriodType(event.target.value)}><option value="day">Día</option><option value="week">Semana</option><option value="month">Mes</option><option value="quarter">Trimestre</option></select>{periodType==='day'&&<input aria-label="Día del reporte" type="date" value={anchorDate} onChange={event=>setAnchorDate(event.target.value)}/>} {periodType==='week'&&<input aria-label="Día dentro de la semana" type="date" value={anchorDate} onChange={event=>setAnchorDate(event.target.value)}/>} {periodType==='month'&&<input aria-label="Mes del reporte" type="month" value={anchorDate.slice(0,7)} onChange={event=>setAnchorDate(`${event.target.value}-01`)}/>} {periodType==='quarter'&&<><select aria-label="Trimestre" value={quarter} onChange={event=>setQuarter(event.target.value)}>{[1,2,3,4].map(value=><option key={value} value={value}>Q{value}</option>)}</select><select aria-label="Año" value={anchor.getFullYear()} onChange={event=>setPeriodYear(event.target.value)}>{years.map(year=><option key={year}>{year}</option>)}</select></>}</div><p className="active-period">{periodLabel}</p></div></div>
+    <div className="report-cards">{data.map(item=><article className={item.label==='Terminadas'?'report-card-action':''} key={item.label} onClick={item.label==='Terminadas'?()=>setShowCompleted(value=>!value):undefined} onKeyDown={item.label==='Terminadas'?event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setShowCompleted(value=>!value)}}:undefined} role={item.label==='Terminadas'?'button':undefined} tabIndex={item.label==='Terminadas'?0:undefined} aria-expanded={item.label==='Terminadas'?showCompleted:undefined}><div className="metric-icon" style={{color:item.color,background:`${item.color}14`}}><item.icon width={22} height={22}/></div><span>{item.label}</span><strong>{item.value}</strong><small>{item.label==='Terminadas'?'Ver tareas · ':''}{Math.round(item.value/total*100)}% del total del período</small></article>)}</div>
+    {showCompleted&&<section className="completed-report"><header><div><p className="eyebrow">DETALLE DEL PERÍODO</p><h2>Tareas terminadas</h2></div><span>{completedTasks.length}</span></header><div>{completedTasks.length?completedTasks.map(task=><button key={task.id} onClick={()=>openTask(task)}><div><b>{task.title}</b><p>{task.description||'Sin descripción'}</p></div><span><Check width={15} height={15}/> {formatPeriodDate(task.completedAt.slice(0,10))}</span></button>):<div className="completed-empty">No hay tareas terminadas en este período.</div>}</div></section>}
+    <section className="effort-panel"><div className="effort-summary"><div className="metric-icon"><Lightning width={22} height={22}/></div><div><p className="eyebrow">NIVEL DE ESFUERZO</p><h2>{effortAverage?effortAverage.toFixed(1):'—'}<span> / 5 promedio</span></h2><p>{periodTasks.length} {periodTasks.length===1?'tarea considerada':'tareas consideradas'} en el período</p></div></div><div className="effort-bars">{effortCounts.map(item=><div key={item.level}><span>{item.level}</span><div><i style={{width:`${item.count/maxEffortCount*100}%`}}></i></div><b>{item.count}</b></div>)}</div></section>
+    <section className="report-panel"><div><p className="eyebrow">DISTRIBUCIÓN</p><h2>Estado de las tareas</h2><p>Actividad del {periodLabel}</p></div><div className="chart-area"><div className="donut" style={{background:`conic-gradient(#735a78 0 ${completed/total*100}%, #c5b3d3 ${completed/total*100}% ${(completed+deprecated)/total*100}%, #f5cbcb ${(completed+deprecated)/total*100}% 100%)`}}><div><strong>{completed+deprecated+pending}</strong><span>Tareas</span></div></div><div className="legend">{data.map(item=><div key={item.label}><span style={{background:item.color}}></span><p>{item.label}<b>{item.value}</b></p></div>)}</div></div></section>
   </div>;
 }
 
-function Today({ tasks, setTasks, openTask }) {
-  const today = '2026-07-14';
+function Today({ tasks, setTasks, openTask, doneColumnId='done' }) {
+  const today = toISODate(new Date());
   const list = tasks.filter(task => task.due === today && task.status !== 'deprecated');
   const complete = task => setTasks(items => items.map(item => item.id === task.id
-    ? { ...item, columnId: 'done', status: 'completed', completedAt: today }
+    ? { ...item, columnId: doneColumnId, status: 'completed', completedAt: new Date().toISOString() }
     : item));
 
   return <div className="today-view">
     <div className="today-header">
-      <div><p className="eyebrow">MARTES, 14 DE JULIO</p><h1>Hoy</h1><p className="subtitle">Todo lo que necesita tu atención hoy.</p></div>
-      <button className="primary" onClick={() => openTask(null)}><Plus size={18} weight="bold"/> Nueva tarea</button>
+      <div><p className="eyebrow">{parseISODate(today).toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}).toUpperCase()}</p><h1>Hoy</h1><p className="subtitle">Todo lo que necesita tu atención hoy.</p></div>
+      <button className="primary" onClick={() => openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button>
     </div>
     <section className="today-panel">
-      <header><div><h2>Tareas para hoy</h2><span>{list.length} {list.length === 1 ? 'tarea' : 'tareas'}</span></div><CalendarBlank size={21}/></header>
+      <header><div><h2>Tareas para hoy</h2><span>{list.length} {list.length === 1 ? 'tarea' : 'tareas'}</span></div><CalendarBlank width={21} height={21}/></header>
       <div className="today-list">{list.length ? list.map(task => <article className="today-row" key={task.id} onClick={() => openTask(task)}>
-        <button className={`today-check ${task.status === 'completed' ? 'checked' : ''}`} onClick={event => { event.stopPropagation(); complete(task); }} aria-label={`Completar ${task.title}`}>{task.status === 'completed' && <Check size={14} weight="bold"/>}</button>
+        <button className={`today-check ${task.status === 'completed' ? 'checked' : ''}`} onClick={event => { event.stopPropagation(); complete(task); }} aria-label={`Completar ${task.title}`}>{task.status === 'completed' && <Check width={14} height={14} strokeWidth={2.2}/>}</button>
         <div className="today-copy"><h3>{task.title}</h3><p>{task.description}</p></div>
         <span className={`today-status ${task.status}`}>{task.status === 'completed' ? 'Terminada' : task.columnId === 'doing' ? 'En curso' : 'Pendiente'}</span>
-        <span className="today-date"><CalendarBlank size={15}/> Hoy</span>
-        <DotsThree size={22} className="today-more"/>
-      </article>) : <div className="today-empty"><CalendarBlank size={32}/><h3>No hay tareas para hoy</h3><p>Disfruta el espacio o prepara tu próxima prioridad.</p></div>}</div>
+        <span className="today-date"><CalendarBlank width={15} height={15}/> Hoy</span>
+        <DotsThree width={22} height={22} className="today-more"/>
+      </article>) : <div className="today-empty"><CalendarBlank width={32} height={32}/><h3>No hay tareas para hoy</h3><p>Disfruta el espacio o prepara tu próxima prioridad.</p></div>}</div>
     </section>
   </div>;
 }
 
 export function App() {
-  const [page,setPage]=useState('board');
-  const [sidebarCollapsed,setSidebarCollapsed]=useState(false);
+  const [page,setPage]=useState(()=>{const saved=localStorage.getItem('td-page')||'board';return saved==='settings'&&!supabaseConfig.isConfigured?'board':saved});
+  const [sidebarCollapsed,setSidebarCollapsed]=useState(true);
+  const [theme,setTheme]=useState(()=>localStorage.getItem('td-theme')||'system');
   const [boardTitle,setBoardTitle]=useState(()=>localStorage.getItem('td-board-title')||'Mi tablero');
-  const [columns,setColumns]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-columns')||'null')||initialColumns;return saved.map(column=>({...column,color:columnPalette[column.id]||(column.color==='#7c6ee6'?'#65dcd5':column.color)}))});
+  const [columns,setColumns]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-columns')||'null')||initialColumns;return saved.map(column=>({...column,color:columnPalette[column.id]||(['#7c6ee6','#65dcd5'].includes(column.color)?'#c5b3d3':column.color)}))});
   const [tasks,setTasks]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-tasks')||'null')||initialTasks;return saved.map(task=>({...task,start:task.start||task.due}))});
   const [editing,setEditing]=useState(null), [defaultColumn,setDefaultColumn]=useState(null), [modal,setModal]=useState(false);
-  useEffect(()=>localStorage.setItem('td-columns',JSON.stringify(columns)),[columns]);
-  useEffect(()=>localStorage.setItem('td-tasks',JSON.stringify(tasks)),[tasks]);
-  useEffect(()=>localStorage.setItem('td-board-title',boardTitle),[boardTitle]);
+  const [session,setSession]=useState(supabaseConfig.isConfigured?undefined:null);
+  const [access,setAccess]=useState(null);
+  const [cloudReady,setCloudReady]=useState(false);
+  const [cloudError,setCloudError]=useState('');
+  const syncQueue=useRef(Promise.resolve());
+  useEffect(()=>{if(!supabaseConfig.isConfigured)return;let active=true;authRepository.getSession().then(value=>{if(active)setSession(value)}).catch(reason=>{if(active){setCloudError(reason.message);setSession(null)}});const unsubscribe=authRepository.onAuthStateChange(value=>{if(active){setSession(value);if(!value){setAccess(null);setCloudReady(false)}}});return()=>{active=false;unsubscribe()}},[]);
+  useEffect(()=>{if(!supabaseConfig.isConfigured||!session?.user)return;let active=true;setCloudReady(false);setCloudError('');const loadCloud=async()=>{const nextAccess=await authRepository.getBoardAccess(supabaseConfig.boardId,session.user.id);const hasLocalData=Boolean(localStorage.getItem('td-columns')&&localStorage.getItem('td-tasks'));if(nextAccess.role==='owner'&&hasLocalData&&!hasCompletedLocalMigration())await migrateLocalDashboard();const data=await dashboardRepository.load(supabaseConfig.boardId);if(!active)return;setAccess(nextAccess);setBoardTitle(data.board.name);setColumns(data.columns);setTasks(data.tasks);if(nextAccess.role==='viewer')setPage('reports');setCloudReady(true)};loadCloud().catch(reason=>{if(active)setCloudError(reason.message)});return()=>{active=false}},[session]);
+  useEffect(()=>{if(!supabaseConfig.isConfigured||!cloudReady||!access?.canWrite)return;let active=true;const snapshot={boardTitle,columns,tasks};const timeout=setTimeout(()=>{syncQueue.current=syncQueue.current.catch(()=>{}).then(()=>dashboardRepository.syncSnapshot(supabaseConfig.boardId,snapshot));syncQueue.current.then(()=>{if(active)setCloudError('')}).catch(reason=>{if(active)setCloudError(`${reason.message} Los cambios permanecen visibles, pero aún no se confirmaron en la nube.`)})},650);return()=>{active=false;clearTimeout(timeout)}},[boardTitle,columns,tasks,cloudReady,access]);
+  useEffect(()=>{if(!supabaseConfig.isConfigured)localStorage.setItem('td-columns',JSON.stringify(columns))},[columns]);
+  useEffect(()=>{if(!supabaseConfig.isConfigured)localStorage.setItem('td-tasks',JSON.stringify(tasks))},[tasks]);
+  useEffect(()=>{if(!supabaseConfig.isConfigured)localStorage.setItem('td-board-title',boardTitle)},[boardTitle]);
+  useEffect(()=>localStorage.setItem('td-page',page),[page]);
+  useEffect(()=>{const media=window.matchMedia('(prefers-color-scheme: dark)');const applyTheme=()=>{document.documentElement.dataset.theme=theme==='system'?(media.matches?'dark':'light'):theme};applyTheme();localStorage.setItem('td-theme',theme);media.addEventListener('change',applyTheme);return()=>media.removeEventListener('change',applyTheme)},[theme]);
   const pending=useMemo(()=>tasks.filter(t=>t.status==='active').length,[tasks]);
+  const doneColumnId=columns.find(column=>column.slug==='done'||column.id==='done')?.id||'done';
   const openTask=(task,columnId)=>{setEditing(task);setDefaultColumn(columnId);setModal(true)};
-  const save=form=>{const taskForm={...form,effort:Number(form.effort)};if(editing)setTasks(ts=>ts.map(t=>t.id===editing.id?{...t,...taskForm}:t));else setTasks(ts=>[...ts,{...taskForm,id:Date.now(),status:form.columnId==='done'?'completed':'active',createdAt:'2026-07-14',completedAt:form.columnId==='done'?'2026-07-14':undefined}]);setModal(false)};
-  return <div className={`app-shell ${sidebarCollapsed?'sidebar-collapsed':''}`}><aside><div className="account"><div className="avatar">RA</div><div><b>Ricardo Alfaro</b><span>Mi espacio personal</span></div><CaretDown size={16}/></div>
-    <nav><button className={page==='board'?'active':''} onClick={()=>setPage('board')}><Kanban size={21}/><span>Mi tablero</span><b>{pending}</b></button><button className={page==='today'?'active':''} onClick={()=>setPage('today')}><CalendarBlank size={21}/><span>Hoy</span></button><button disabled title="Buscador aún no disponible"><MagnifyingGlass size={21}/><span>Buscador</span></button><button className={page==='reports'?'active':''} onClick={()=>setPage('reports')}><ChartBar size={21}/><span>Reportes</span></button></nav>
-    <div className="sidebar-label">VISTAS</div><nav><button disabled title="Filtros y etiquetas aún no disponibles"><SlidersHorizontal size={21}/><span>Filtros y etiquetas</span></button><button disabled title="Vista de tareas deprecadas aún no disponible"><Archive size={21}/><span>Deprecadas</span><b>{tasks.filter(t=>t.status==='deprecated').length}</b></button></nav>
-    <div className="aside-bottom"><button disabled title="Notificaciones aún no disponibles"><Bell size={20}/><span>Notificaciones</span></button><button onClick={()=>setSidebarCollapsed(value=>!value)} aria-label={sidebarCollapsed?'Expandir menú':'Contraer menú'} title={sidebarCollapsed?'Expandir menú':'Contraer menú'}>{sidebarCollapsed?<ArrowRight size={20}/>:<ArrowLeft size={20}/>}<span>{sidebarCollapsed?'Expandir menú':'Contraer menú'}</span></button></div>
-  </aside><main>{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask}/>:<Reports tasks={tasks}/>}</main>
-  {modal&&<Modal title={editing?'Editar tarea':'Nueva tarea'} onClose={()=>setModal(false)}><TaskForm task={editing} columns={columns} defaultColumn={defaultColumn} onSave={save} onClose={()=>setModal(false)}/>{editing&&<button className="delete-task" onClick={()=>{setTasks(ts=>ts.filter(t=>t.id!==editing.id));setModal(false)}}><Trash size={17}/> Eliminar definitivamente</button>}</Modal>}
+  const save=form=>{const taskForm={...form,effort:Number(form.effort)};if(editing)setTasks(ts=>ts.map(t=>t.id===editing.id?{...t,...taskForm,status:form.columnId===doneColumnId?'completed':t.status==='deprecated'?'deprecated':'active',completedAt:form.columnId===doneColumnId?(t.completedAt||new Date().toISOString()):undefined}:t));else setTasks(ts=>[...ts,{...taskForm,id:crypto.randomUUID(),status:form.columnId===doneColumnId?'completed':'active',createdAt:toISODate(new Date()),completedAt:form.columnId===doneColumnId?new Date().toISOString():undefined}]);setModal(false)};
+  const themeOptions=['system','light','dark'];
+  const cycleTheme=()=>setTheme(current=>themeOptions[(themeOptions.indexOf(current)+1)%themeOptions.length]);
+  const ThemeIcon=theme==='system'?Computer:theme==='light'?SunLight:HalfMoon;
+  const themeLabel=theme==='system'?'Tema del sistema':theme==='light'?'Tema claro':'Tema oscuro';
+  if(supabaseConfig.isConfigured&&session===undefined)return <main className="cloud-state"><span className="loader"/><p>Comprobando acceso…</p></main>;
+  if(supabaseConfig.isConfigured&&!session)return <AuthScreen/>;
+  if(supabaseConfig.isConfigured&&!cloudReady)return <main className="cloud-state"><span className="loader"/><p>{cloudError||'Cargando el espacio…'}</p>{cloudError&&<button className="secondary" onClick={()=>authRepository.signOut()}>Volver al ingreso</button>}</main>;
+  if(access?.role==='viewer')return <div className="viewer-shell"><header><div><p className="eyebrow">REPORTE COMPARTIDO · SOLO LECTURA</p><strong>{boardTitle}</strong></div><button className="secondary" onClick={()=>authRepository.signOut()}>Cerrar sesión</button></header>{cloudError&&<div className="cloud-alert" role="alert">{cloudError}</div>}<main><Reports tasks={tasks} openTask={task=>{setEditing(task);setModal(true)}}/></main>{modal&&editing&&<Modal title="Detalle de tarea" onClose={()=>setModal(false)}><ReadOnlyTask task={editing} columnTitle={columns.find(column=>column.id===editing.columnId)?.title}/></Modal>}</div>;
+  return <div className={`app-shell ${sidebarCollapsed?'sidebar-collapsed':''}`}><aside><div className="account"><label className="sidebar-search"><MagnifyingGlass width={18} height={18}/><input disabled type="search" placeholder="Buscar" aria-label="Buscar, aún no disponible"/></label><button className="account-sidebar-toggle" onClick={()=>setSidebarCollapsed(value=>!value)} aria-label={sidebarCollapsed?'Expandir menú':'Contraer menú'} title={sidebarCollapsed?'Expandir menú':'Contraer menú'}>{sidebarCollapsed?<SidebarExpand width={20} height={20}/>:<SidebarCollapse width={20} height={20}/>}</button></div>
+    <div className="sidebar-label">VISTAS</div><nav><button className={page==='board'?'active':''} aria-current={page==='board'?'page':undefined} onClick={()=>setPage('board')}><Kanban width={21} height={21}/><span>Tablero</span><b>{pending}</b></button><button className={page==='timeline'?'active':''} aria-current={page==='timeline'?'page':undefined} onClick={()=>setPage('timeline')}><TableRows width={21} height={21}/><span>Semana</span></button><button className={page==='today'?'active':''} aria-current={page==='today'?'page':undefined} onClick={()=>setPage('today')}><CalendarBlank width={21} height={21}/><span>Hoy</span></button></nav>
+    <div className="sidebar-label">OPCIONES</div><nav><button className={page==='reports'?'active':''} onClick={()=>setPage('reports')}><ChartBar width={21} height={21}/><span>Reportes</span></button><button disabled title="Filtros aún no disponibles"><SlidersHorizontal width={21} height={21}/><span>Filtros</span></button><button disabled title="Archivo de tareas, próximamente"><Archive width={21} height={21}/><span>Archivo</span><b>{tasks.filter(t=>t.status==='deprecated').length}</b></button></nav>
+    <div className="aside-bottom"><button className="theme-toggle" onClick={cycleTheme} title={`${themeLabel}. Cambiar apariencia`} aria-label={`${themeLabel}. Cambiar apariencia`}><ThemeIcon width={20} height={20}/><span>{themeLabel}</span></button>{supabaseConfig.isConfigured&&<button onClick={()=>authRepository.signOut()} title="Cerrar sesión"><LogOut width={20} height={20}/><span>Cerrar sesión</span></button>}<button disabled={!access?.canManageAccess} className={page==='settings'?'active':''} onClick={()=>setPage('settings')} title={access?.canManageAccess?'Administrar configuración':'Configuración disponible al conectar Supabase'}><Settings width={20} height={20}/><span>Configuración</span></button></div>
+  </aside><main>{cloudError&&<div className="cloud-alert" role="alert">{cloudError}</div>}{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='timeline'?<Timeline tasks={tasks} setTasks={setTasks} openTask={openTask}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask} doneColumnId={doneColumnId}/>:page==='settings'?<AccessSettings/>:<Reports tasks={tasks} openTask={openTask} canShare={Boolean(access?.canManageAccess)}/>}</main>
+  {modal&&<Modal title={editing?'Editar tarea':'Nueva tarea'} onClose={()=>setModal(false)}><TaskForm task={editing} columns={columns} defaultColumn={defaultColumn} onSave={save} onClose={()=>setModal(false)}/>{editing&&<button className="delete-task" onClick={()=>{setTasks(ts=>ts.filter(t=>t.id!==editing.id));setModal(false)}}><Trash width={17} height={17}/> Eliminar definitivamente</button>}</Modal>}
   </div>;
 }
