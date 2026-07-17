@@ -83,6 +83,8 @@ Antes del primer despliegue se deben crear `VITE_SUPABASE_URL`, `VITE_SUPABASE_A
 
 Después de aplicar las migraciones, `npm run bootstrap:supabase` crea o reutiliza el propietario, el tablero y las tres columnas fijas. El procedimiento está detallado en `docs/supabase-bootstrap.md`.
 
+Con una cuenta `viewer` creada, `npm run verify:supabase` comprueba de extremo a extremo las restricciones anónimas, de propietario y de solo lectura antes del despliegue.
+
 La rama principal puede conectarse mediante la integración Git de Vercel para producción y las ramas de trabajo generan previews. El proyecto aún requiere enlazarse a una cuenta Vercel antes de obtener su URL estable.
 
 ## Copia periódica en Notion

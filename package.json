@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "bootstrap:supabase": "node scripts/bootstrap-supabase.mjs",
+    "verify:supabase": "node scripts/verify-supabase.mjs",
     "export:notion": "node scripts/export-to-notion.mjs",
     "test:notion-export": "node --test scripts/export-to-notion.test.mjs",
     "test": "node --test scripts/*.test.mjs"
