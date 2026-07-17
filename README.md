@@ -61,7 +61,7 @@ Muestra en formato de lista las tareas cuya fecha de entrega corresponde al día
 
 ### `Timeline`
 
-Representa las tareas entre su fecha de inicio y entrega en una semana de lunes a domingo. Permite navegar entre semanas, ver el nivel de esfuerzo y abrir el mismo detalle editable del Kanban; las tareas terminadas permanecen visibles, tachadas y opacas.
+Representa las tareas entre su fecha de inicio y entrega en una semana de lunes a domingo. Permite navegar entre semanas, ver el nivel de esfuerzo y abrir el mismo detalle editable del Kanban; las tareas terminadas permanecen visibles, tachadas y opacas. Una tarea se puede reprogramar conservando su duración al arrastrarla hacia otro día o mediante sus controles de día anterior y siguiente.
 
 ### `Reports`
 

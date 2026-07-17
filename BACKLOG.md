@@ -76,7 +76,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 ### 6. Agregar una vista semanal de Línea de tiempo
 
-- **Estado:** En curso — visualización terminada; pendiente la planificación directa
+- **Estado:** Terminada
 - **Prioridad:** Alta
 - **Objetivo:** Permitir planificar y revisar las mismas tareas tanto en Kanban como en una distribución temporal semanal.
 - **Principios acordados:**
@@ -136,7 +136,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 6.6. Permitir planificación directa desde la Línea de tiempo
 
-- **Estado:** Pendiente
+- **Estado:** Terminada
 - **Alcance:** Permitir mover o ajustar tareas temporalmente desde la vista semanal después de estabilizar la visualización inicial.
 - **Criterios de aceptación:**
   - Una tarea puede cambiar de día conservando su duración.
