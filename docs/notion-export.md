@@ -31,6 +31,8 @@ Opcionalmente, `EXPORT_SINCE` acepta un timestamp ISO para leer únicamente tare
 
 `.github/workflows/notion-export.yml` se ejecuta diariamente a las 12:17 UTC y también ofrece `workflow_dispatch`. Los cinco valores requeridos deben configurarse como GitHub Actions Secrets.
 
+Mientras esos secretos no existan, las ejecuciones programadas se omiten sin generar falsos fallos. Una ejecución manual sin configuración sí falla para comunicar el problema inmediatamente.
+
 Cada ejecución registra inicio, término, duración, tareas leídas, creadas, actualizadas y fallidas. Las respuestas 429 y los errores transitorios 5xx se reintentan; si una tarea falla, las demás continúan y el job termina con error para permitir un reintento seguro.
 
 La rutina usa la API de Notion `2026-03-11` y un `data_source_id`, no el antiguo `database_id`.
