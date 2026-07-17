@@ -4,7 +4,8 @@ import {
   Calendar as CalendarBlank, Reports as ChartBar, Check, TaskList as ClipboardText,
   MoreHoriz as DotsThree, KanbanBoard as Kanban, Search as MagnifyingGlass,
   Plus, Flash as Lightning, FilterList as SlidersHorizontal, Trash, Xmark as X,
-  SidebarCollapse, SidebarExpand, TableRows, Settings, ShareAndroid
+  SidebarCollapse, SidebarExpand, TableRows, Settings, ShareAndroid,
+  Computer, HalfMoon, SunLight
 } from 'iconoir-react';
 
 const initialColumns = [
@@ -170,6 +171,7 @@ function Today({ tasks, setTasks, openTask }) {
 export function App() {
   const [page,setPage]=useState('board');
   const [sidebarCollapsed,setSidebarCollapsed]=useState(true);
+  const [theme,setTheme]=useState(()=>localStorage.getItem('td-theme')||'system');
   const [boardTitle,setBoardTitle]=useState(()=>localStorage.getItem('td-board-title')||'Mi tablero');
   const [columns,setColumns]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-columns')||'null')||initialColumns;return saved.map(column=>({...column,color:columnPalette[column.id]||(['#7c6ee6','#65dcd5'].includes(column.color)?'#c5b3d3':column.color)}))});
   const [tasks,setTasks]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-tasks')||'null')||initialTasks;return saved.map(task=>({...task,start:task.start||task.due}))});
@@ -177,13 +179,18 @@ export function App() {
   useEffect(()=>localStorage.setItem('td-columns',JSON.stringify(columns)),[columns]);
   useEffect(()=>localStorage.setItem('td-tasks',JSON.stringify(tasks)),[tasks]);
   useEffect(()=>localStorage.setItem('td-board-title',boardTitle),[boardTitle]);
+  useEffect(()=>{const media=window.matchMedia('(prefers-color-scheme: dark)');const applyTheme=()=>{document.documentElement.dataset.theme=theme==='system'?(media.matches?'dark':'light'):theme};applyTheme();localStorage.setItem('td-theme',theme);media.addEventListener('change',applyTheme);return()=>media.removeEventListener('change',applyTheme)},[theme]);
   const pending=useMemo(()=>tasks.filter(t=>t.status==='active').length,[tasks]);
   const openTask=(task,columnId)=>{setEditing(task);setDefaultColumn(columnId);setModal(true)};
   const save=form=>{const taskForm={...form,effort:Number(form.effort)};if(editing)setTasks(ts=>ts.map(t=>t.id===editing.id?{...t,...taskForm}:t));else setTasks(ts=>[...ts,{...taskForm,id:Date.now(),status:form.columnId==='done'?'completed':'active',createdAt:'2026-07-14',completedAt:form.columnId==='done'?'2026-07-14':undefined}]);setModal(false)};
+  const themeOptions=['system','light','dark'];
+  const cycleTheme=()=>setTheme(current=>themeOptions[(themeOptions.indexOf(current)+1)%themeOptions.length]);
+  const ThemeIcon=theme==='system'?Computer:theme==='light'?SunLight:HalfMoon;
+  const themeLabel=theme==='system'?'Tema del sistema':theme==='light'?'Tema claro':'Tema oscuro';
   return <div className={`app-shell ${sidebarCollapsed?'sidebar-collapsed':''}`}><aside><div className="account"><label className="sidebar-search"><MagnifyingGlass width={18} height={18}/><input disabled type="search" placeholder="Buscar" aria-label="Buscar, aún no disponible"/></label><button className="account-sidebar-toggle" onClick={()=>setSidebarCollapsed(value=>!value)} aria-label={sidebarCollapsed?'Expandir menú':'Contraer menú'} title={sidebarCollapsed?'Expandir menú':'Contraer menú'}>{sidebarCollapsed?<SidebarExpand width={20} height={20}/>:<SidebarCollapse width={20} height={20}/>}</button></div>
     <div className="sidebar-label">VISTAS</div><nav><button className={page==='board'?'active':''} onClick={()=>setPage('board')}><Kanban width={21} height={21}/><span>Tablero</span><b>{pending}</b></button><button disabled title="Vista semanal de Línea de tiempo, próximamente"><TableRows width={21} height={21}/><span>Semana</span></button><button className={page==='today'?'active':''} onClick={()=>setPage('today')}><CalendarBlank width={21} height={21}/><span>Hoy</span></button></nav>
     <div className="sidebar-label">OPCIONES</div><nav><button className={page==='reports'?'active':''} onClick={()=>setPage('reports')}><ChartBar width={21} height={21}/><span>Reportes</span></button><button disabled title="Filtros aún no disponibles"><SlidersHorizontal width={21} height={21}/><span>Filtros</span></button><button disabled title="Archivo de tareas, próximamente"><Archive width={21} height={21}/><span>Archivo</span><b>{tasks.filter(t=>t.status==='deprecated').length}</b></button></nav>
-    <div className="aside-bottom"><button disabled title="Configuración aún no disponible"><Settings width={20} height={20}/><span>Configuración</span></button></div>
+    <div className="aside-bottom"><button className="theme-toggle" onClick={cycleTheme} title={`${themeLabel}. Cambiar apariencia`} aria-label={`${themeLabel}. Cambiar apariencia`}><ThemeIcon width={20} height={20}/><span>{themeLabel}</span></button><button disabled title="Configuración aún no disponible"><Settings width={20} height={20}/><span>Configuración</span></button></div>
   </aside><main>{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask}/>:<Reports tasks={tasks} openTask={openTask}/>}</main>
   {modal&&<Modal title={editing?'Editar tarea':'Nueva tarea'} onClose={()=>setModal(false)}><TaskForm task={editing} columns={columns} defaultColumn={defaultColumn} onSave={save} onClose={()=>setModal(false)}/>{editing&&<button className="delete-task" onClick={()=>{setTasks(ts=>ts.filter(t=>t.id!==editing.id));setModal(false)}}><Trash width={17} height={17}/> Eliminar definitivamente</button>}</Modal>}
   </div>;

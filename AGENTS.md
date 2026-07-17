@@ -25,3 +25,4 @@ When implementing from a selected generated mock, treat that image as the source
 - The expanded sidebar header shows a disabled search field instead of personal identity or avatar; collapsing hides only that field and keeps the sidebar control aligned.
 - The main sidebar includes a disabled “Línea de tiempo” destination in place of the former search item until the weekly task-management view is implemented.
 - Sidebar navigation is grouped as `VISTAS` (Tablero, Semana, Hoy), `OPCIONES` (Reportes, Filtros, Archivo), with Configuración anchored at the bottom. Reports includes a disabled Compartir CTA reserved for private report URLs.
+- Appearance defaults to the operating-system preference and cycles through System, Light, and Dark from a single footer icon above Configuración; expanded sidebar shows the theme label and collapsed sidebar shows only the icon.

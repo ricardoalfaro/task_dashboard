@@ -245,6 +245,18 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - Un fallo parcial puede reintentarse sin duplicar información.
   - La exportación también puede ejecutarse manualmente para validación o recuperación.
 
+### 8. Incorporar apariencia clara, oscura y automática
+
+- **Estado:** Terminada
+- **Prioridad:** Media
+- **Objetivo:** Adaptar la interfaz a la preferencia visual del sistema y permitir una selección manual persistente.
+- **Criterios de aceptación:**
+  - La apariencia inicial sigue la preferencia clara u oscura del sistema operativo.
+  - Un único control alterna entre Sistema, Claro y Oscuro.
+  - La preferencia manual persiste al recargar.
+  - El control muestra etiqueta con el sidebar abierto y solo el icono al estar colapsado.
+  - Las vistas principales, tarjetas, formularios, modales y reportes conservan contraste suficiente en modo oscuro.
+
 ## Ruta de implementación recomendada
 
 La ruta está ordenada por dependencias técnicas y por la posibilidad de entregar valor verificable en cada etapa.
