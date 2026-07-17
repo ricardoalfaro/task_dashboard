@@ -120,6 +120,8 @@ npm run dev
 
 Vite mostrará la dirección local en la terminal.
 
+Para preparar la conexión con Supabase, copia `.env.example` a `.env.local` y completa la URL, clave anónima e identificador del tablero. Mientras estas variables y una sesión autenticada no estén disponibles, `localStorage` continúa siendo la fuente activa del prototipo.
+
 Para generar la versión optimizada:
 
 ```bash

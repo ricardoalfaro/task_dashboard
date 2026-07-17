@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "@vitejs/plugin-react": "5.0.4",
     "iconoir-react": "^7.11.1",
     "react": "19.2.0",

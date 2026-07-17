@@ -41,3 +41,14 @@ Operaciones administrativas, migraciones y exportaciones a Notion usarán secret
 
 La migración inicial está en `supabase/migrations/202607170001_initial_schema.sql`.
 
+## Configuración del cliente
+
+El frontend cuenta con una capa de acceso en `src/data/dashboardRepository.js`. Para habilitarla se deben configurar las variables documentadas en `.env.example`:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_BOARD_ID`
+
+La clave anónima es pública y está protegida por RLS. La clave `service_role` no forma parte de la configuración del frontend.
+
+El repositorio ofrece carga completa y mutaciones explícitas para tablero, columnas y tareas. La aplicación seguirá usando `localStorage` hasta que exista una instancia conectada y una sesión de propietario; no se habilita un fallback silencioso después de un error remoto.

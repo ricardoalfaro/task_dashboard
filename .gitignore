@@ -4,3 +4,5 @@ dist/
 .DS_Store
 prototype-*.png
 design-comparison.png
+.env*
+!.env.example

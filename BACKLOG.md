@@ -173,7 +173,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 #### 7.2. Persistir tareas y columnas en la nube
 
-- **Estado:** Pendiente
+- **Estado:** En curso — cliente y repositorio preparados; pendiente de conectar una instancia Supabase
 - **Alcance:** Reemplazar `localStorage` como fuente principal por una API y base de datos remota.
 - **Criterios de aceptación:**
   - Las tareas, columnas personalizadas, posiciones, esfuerzo, fechas y estados persisten entre dispositivos.
