@@ -20,6 +20,7 @@ New tasks default both their start and due dates to the current local date; user
 - Kanban and the weekly Timeline are two views of the same task data. Completed tasks stay in `DONE` on Kanban and remain visible but struck through and muted on Timeline.
 - The weekly Timeline uses seven contiguous Kanban-like day columns at full available width. Larger compact cards span their date range, preserve duration when dragged to another day, and support week navigation through arrows, a date picker, or horizontal scrolling gestures.
 - Weekly Timeline tasks use compact overlap-aware lanes: non-overlapping tasks share the same vertical position, and a task moves to the next lane only when its date range overlaps another task.
+- Weekly Timeline task durations resize from a right-edge handle and always snap to whole-day units, with one full day as the minimum visible duration.
 - Future cloud access must support an `owner` with full editing rights and external supervisors with report-focused, read-only access to metrics and task details.
 - Supabase is the planned source of truth. Notion may receive scheduled, one-way exports for company visibility and backup, keyed by stable Supabase task IDs to avoid duplicates.
 - Use Google Sans Flex as the prototype's global interface typeface.
