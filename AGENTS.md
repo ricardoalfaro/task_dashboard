@@ -19,7 +19,7 @@ New tasks default both their start and due dates to the current local date; user
 - The `TO-DO`, `DOING`, and `DONE` columns are permanent and have no deletion menu. Custom columns can be reordered between them and deleted; deleting one returns its tasks to `TO-DO` instead of deleting them.
 - Kanban cards change state only through drag and drop and therefore have no completion check. `DONE` has no add-task footer; `TO-DO`, `DOING`, and custom columns do.
 - Card overflow actions open a menu instead of acting immediately. `Archivar` requires confirmation, and Archivo supports restoring tasks to `TO-DO`, opening their edit modal, or permanently deleting them. The board surfaces an overdue-task alert linking to the weekly view.
-- Use the Color Hunt palette `#FBEFEF`, `#FFE2E2`, `#F5CBCB`, and `#C5B3D3` as the prototype's core visual palette, with a deep plum neutral for accessible text contrast.
+- Use the Coolors palette `#FFFFFF`, `#00171F`, `#003459`, `#007EA7`, and `#00A8E8` as the prototype's core visual palette. Red is reserved only for semantic warnings such as overdue work or destructive actions.
 - Kanban and the weekly Timeline are two views of the same task data. Completed tasks stay in `DONE` on Kanban and remain visible but struck through and muted on Timeline.
 - The weekly Timeline uses seven contiguous Kanban-like day columns at full available width. Larger compact cards span their date range, preserve duration when dragged to another day, and support week navigation through arrows, a date picker, or horizontal scrolling gestures.
 - Weekly Timeline tasks use compact overlap-aware lanes: non-overlapping tasks share the same vertical position, and a task moves to the next lane only when its date range overlaps another task.
