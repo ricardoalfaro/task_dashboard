@@ -23,6 +23,8 @@ New tasks default both their start and due dates to the current local date; user
 - Weekly Timeline task durations resize from a right-edge handle and always snap to whole-day units, with one full day as the minimum visible duration.
 - Sidebar view labels are `Estado`, `Semanal`, and `Diaria`. `Semanal` always shows the current calendar week's task count, while the weekly page title shows the count for the week being viewed.
 - Weekly day headers show only the centered weekday name and date number. Weekly cards show a two-line title and Kanban-column status, reveal their duration handle only on hover, and use a red outline for overdue tasks still in `DOING`.
+- Weekly day headers stay compact. Weekly cards use light typographic weight, top-aligned content, no lateral move arrows, and show their start/end dates below the title; movement remains available through drag and drop.
+- Task create/edit forms call the Kanban column `Estado`, call the due date `Fecha de fin`, and include persistent optional `Notas` and `Link` fields.
 - Future cloud access must support an `owner` with full editing rights and external supervisors with report-focused, read-only access to metrics and task details.
 - Supabase is the planned source of truth. Notion may receive scheduled, one-way exports for company visibility and backup, keyed by stable Supabase task IDs to avoid duplicates.
 - Use Google Sans Flex as the prototype's global interface typeface.
