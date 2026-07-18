@@ -12,12 +12,13 @@ import { dashboardRepository } from './data/dashboardRepository.js';
 import { hasCompletedLocalMigration, migrateLocalDashboard } from './data/localMigration.js';
 import { supabaseConfig } from './lib/supabase.js';
 
+const themeColors = Object.freeze({danger:'#d62839',archive:'#ba324f',primary:'#175676',interaction:'#4ba3c3',soft:'#cce6f4'});
 const initialColumns = [
-  { id: 'todo', title: 'TO-DO', color: '#cce6f4' },
-  { id: 'doing', title: 'DOING', color: '#4ba3c3' },
-  { id: 'done', title: 'DONE', color: '#175676' },
+  { id: 'todo', title: 'TO-DO', color: themeColors.soft },
+  { id: 'doing', title: 'DOING', color: themeColors.interaction },
+  { id: 'done', title: 'DONE', color: themeColors.primary },
 ];
-const columnPalette = { todo:'#cce6f4', doing:'#4ba3c3', done:'#175676' };
+const columnPalette = {todo:themeColors.soft,doing:themeColors.interaction,done:themeColors.primary};
 
 const initialTasks = [
   { id: 1, columnId: 'todo', title: 'Preparar presentación semanal', description: 'Resumir los avances, bloqueos y próximos hitos del equipo.', due: '2026-07-14', status: 'active', createdAt: '2026-07-03' },
@@ -139,7 +140,7 @@ function Board({ columns, tasks, setTasks, setColumns, openTask, onViewTimeline 
       <header className="column-header"><div className="column-title"><span style={{background:col.color}}></span><EditableColumnTitle value={col.title} onChange={title=>renameColumn(col.id,title)}/><b>{list.length}</b></div>{!isFixed&&<div className="column-menu-wrap"><button className="icon-button" onClick={()=>setColumnMenu(current=>current===col.id?null:col.id)} aria-label={`Opciones de ${col.title}`} aria-expanded={columnMenu===col.id}><DotsThree width={22} height={22}/></button>{columnMenu===col.id&&<div className="column-menu"><button onClick={()=>deleteColumn(col.id)}><Trash width={16} height={16}/> Eliminar columna</button></div>}</div>}</header>
       <div className="task-list">{list.map(t=><TaskCard key={t.id} task={t} onEdit={openTask} onArchive={archive} onDragStart={(e,id)=>{e.stopPropagation();e.dataTransfer.setData('text/task',id)}}/>)}
       {col.id!==doneColumnId&&<button className="add-card" onClick={()=>openTask(null,col.id)}><Plus width={18} height={18}/> Añadir tarea</button>}</div></section>})}
-      <section className={`add-column ${newColumn?'is-creating':''}`} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn)reorderColumn(draggedColumn,null)}}>{newColumn?<form onSubmit={e=>{e.preventDefault();const v=e.currentTarget.elements.title.value.trim();if(v){setColumns(c=>[...c,{id:crypto.randomUUID(),slug:`column-${Date.now()}`,title:v.toUpperCase(),color:'#ba324f',isFixed:false}]);setNewColumn(false)}}}><input name="title" autoFocus placeholder="NOMBRE DE LA COLUMNA" onChange={event=>{event.currentTarget.value=event.currentTarget.value.toUpperCase()}}/><div><button type="button" className="icon-button" onClick={()=>setNewColumn(false)} aria-label="Cancelar"><X width={20} height={20}/></button><button className="primary add-column-confirm" aria-label="Añadir columna"><Check width={20} height={20}/></button></div></form>:<button onClick={()=>setNewColumn(true)}><Plus width={18} height={18}/> Añadir columna</button>}</section>
+      <section className={`add-column ${newColumn?'is-creating':''}`} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn)reorderColumn(draggedColumn,null)}}>{newColumn?<form onSubmit={e=>{e.preventDefault();const v=e.currentTarget.elements.title.value.trim();if(v){setColumns(c=>[...c,{id:crypto.randomUUID(),slug:`column-${Date.now()}`,title:v.toUpperCase(),color:themeColors.archive,isFixed:false}]);setNewColumn(false)}}}><input name="title" autoFocus placeholder="NOMBRE DE LA COLUMNA" onChange={event=>{event.currentTarget.value=event.currentTarget.value.toUpperCase()}}/><div><button type="button" className="icon-button" onClick={()=>setNewColumn(false)} aria-label="Cancelar"><X width={20} height={20}/></button><button className="primary add-column-confirm" aria-label="Añadir columna"><Check width={20} height={20}/></button></div></form>:<button onClick={()=>setNewColumn(true)}><Plus width={18} height={18}/> Añadir columna</button>}</section>
     </div></div>;
 }
 
@@ -206,7 +207,7 @@ function Reports({ tasks, openTask, canShare=false }) {
   const effortCounts=[1,2,3,4,5].map(level=>({level,count:periodTasks.filter(task=>(Number(task.effort)||3)===level).length}));
   const maxEffortCount=Math.max(...effortCounts.map(item=>item.count),1);
   const total=Math.max(completed+deprecated+pending,1);
-  const data=[{label:'Terminadas',value:completed,color:'#175676',icon:Check},{label:'Archivadas',value:deprecated,color:'#ba324f',icon:Archive},{label:'Pendientes',value:pending,color:'#4ba3c3',icon:ClipboardText}];
+  const data=[{label:'Terminadas',value:completed,color:themeColors.primary,icon:Check},{label:'Archivadas',value:deprecated,color:themeColors.archive,icon:Archive},{label:'Pendientes',value:pending,color:themeColors.interaction,icon:ClipboardText}];
   const anchor=parseISODate(anchorDate);
   const quarter=Math.floor(anchor.getMonth()/3)+1;
   const years=[2024,2025,2026,2027];
@@ -218,7 +219,7 @@ function Reports({ tasks, openTask, canShare=false }) {
     <div className="report-cards">{data.map(item=><article className={item.label==='Terminadas'?'report-card-action':''} key={item.label} onClick={item.label==='Terminadas'?()=>setShowCompleted(value=>!value):undefined} onKeyDown={item.label==='Terminadas'?event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();setShowCompleted(value=>!value)}}:undefined} role={item.label==='Terminadas'?'button':undefined} tabIndex={item.label==='Terminadas'?0:undefined} aria-expanded={item.label==='Terminadas'?showCompleted:undefined}><div className="metric-icon" style={{color:item.color,background:`${item.color}14`}}><item.icon width={22} height={22}/></div><span>{item.label}</span><strong>{item.value}</strong><small>{item.label==='Terminadas'?'Ver tareas · ':''}{Math.round(item.value/total*100)}% del total del período</small></article>)}</div>
     {showCompleted&&<section className="completed-report"><header><div><p className="eyebrow">DETALLE DEL PERÍODO</p><h2>Tareas terminadas</h2></div><span>{completedTasks.length}</span></header><div>{completedTasks.length?completedTasks.map(task=><button key={task.id} onClick={()=>openTask(task)}><div><b>{task.title}</b><p>{task.description||'Sin descripción'}</p></div><span><Check width={15} height={15}/> {formatPeriodDate(task.completedAt.slice(0,10))}</span></button>):<div className="completed-empty">No hay tareas terminadas en este período.</div>}</div></section>}
     <section className="effort-panel"><div className="effort-summary"><div className="metric-icon"><Lightning width={22} height={22}/></div><div><p className="eyebrow">NIVEL DE ESFUERZO</p><h2>{effortAverage?effortAverage.toFixed(1):'—'}<span> / 5 promedio</span></h2><p>{periodTasks.length} {periodTasks.length===1?'tarea considerada':'tareas consideradas'} en el período</p></div></div><div className="effort-bars">{effortCounts.map(item=><div key={item.level}><span>{item.level}</span><div><i style={{width:`${item.count/maxEffortCount*100}%`}}></i></div><b>{item.count}</b></div>)}</div></section>
-    <section className="report-panel"><div><p className="eyebrow">DISTRIBUCIÓN</p><h2>Estado de las tareas</h2><p>Actividad del {periodLabel}</p></div><div className="chart-area"><div className="donut" style={{background:`conic-gradient(#175676 0 ${completed/total*100}%, #ba324f ${completed/total*100}% ${(completed+deprecated)/total*100}%, #4ba3c3 ${(completed+deprecated)/total*100}% 100%)`}}><div><strong>{completed+deprecated+pending}</strong><span>Tareas</span></div></div><div className="legend">{data.map(item=><div key={item.label}><span style={{background:item.color}}></span><p>{item.label}<b>{item.value}</b></p></div>)}</div></div></section>
+    <section className="report-panel"><div><p className="eyebrow">DISTRIBUCIÓN</p><h2>Estado de las tareas</h2><p>Actividad del {periodLabel}</p></div><div className="chart-area"><div className="donut" style={{background:`conic-gradient(${themeColors.primary} 0 ${completed/total*100}%, ${themeColors.archive} ${completed/total*100}% ${(completed+deprecated)/total*100}%, ${themeColors.interaction} ${(completed+deprecated)/total*100}% 100%)`}}><div><strong>{completed+deprecated+pending}</strong><span>Tareas</span></div></div><div className="legend">{data.map(item=><div key={item.label}><span style={{background:item.color}}></span><p>{item.label}<b>{item.value}</b></p></div>)}</div></div></section>
   </div>;
 }
 
@@ -252,7 +253,7 @@ export function App() {
   const [sidebarCollapsed,setSidebarCollapsed]=useState(true);
   const [theme,setTheme]=useState(()=>localStorage.getItem('td-theme')||'system');
   const [boardTitle,setBoardTitle]=useState(()=>localStorage.getItem('td-board-title')||'Mi tablero');
-  const [columns,setColumns]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-columns')||'null')||initialColumns;const legacyColors=['#7c6ee6','#65dcd5','#f5cbcb','#ffe2e2','#c5b3d3','#00a8e8','#007ea7','#003459','#ffef00','#ff7538','#11ee11','#ff66cc'];return saved.map(column=>({...column,color:columnPalette[column.id]||(legacyColors.includes(column.color)?'#ba324f':column.color)}))});
+  const [columns,setColumns]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-columns')||'null')||initialColumns;const legacyColors=['#7c6ee6','#65dcd5','#f5cbcb','#ffe2e2','#c5b3d3','#00a8e8','#007ea7','#003459','#ffef00','#ff7538','#11ee11','#ff66cc'];return saved.map(column=>({...column,color:columnPalette[column.id]||(legacyColors.includes(column.color)?themeColors.archive:column.color)}))});
   const [tasks,setTasks]=useState(()=>{const saved=JSON.parse(localStorage.getItem('td-tasks')||'null')||initialTasks;return saved.map(task=>({...task,start:task.start||task.due}))});
   const [editing,setEditing]=useState(null), [defaultColumn,setDefaultColumn]=useState(null), [modal,setModal]=useState(false);
   const [session,setSession]=useState(supabaseConfig.isConfigured?undefined:null);
