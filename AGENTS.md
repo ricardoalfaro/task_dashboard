@@ -12,10 +12,13 @@ New tasks default both their start and due dates to the current local date; user
 
 - Do not show an “Añadir tarea” action in the sidebar; task creation belongs in the main views.
 - The desktop sidebar must support explicit collapse and expand controls.
-- The board name is user-customizable inline by double-clicking its title and pressing Enter to save.
+- The board view has the fixed heading `Tablero de estado` and uses `Ricardo Alfaro` as the current project label; its heading is not editable.
 - Tasks include a persistent effort level from 1 to 5, edited with a slider and surfaced in Reports for future filtering and sorting.
 - Every Kanban column name is editable inline using double-click and Enter, matching the board-title interaction.
+- Kanban column names are normalized to uppercase while typing and when saved. The new-column editor occupies a minimum empty-column card and uses adjacent X and check icon actions.
 - The `TO-DO`, `DOING`, and `DONE` columns are permanent and have no deletion menu. Custom columns can be reordered between them and deleted; deleting one returns its tasks to `TO-DO` instead of deleting them.
+- Kanban cards change state only through drag and drop and therefore have no completion check. `DONE` has no add-task footer; `TO-DO`, `DOING`, and custom columns do.
+- Card overflow actions open a menu instead of acting immediately. `Archivar` requires confirmation, and Archivo supports restoring tasks to `TO-DO`, opening their edit modal, or permanently deleting them. The board surfaces an overdue-task alert linking to the weekly view.
 - Use the Color Hunt palette `#FBEFEF`, `#FFE2E2`, `#F5CBCB`, and `#C5B3D3` as the prototype's core visual palette, with a deep plum neutral for accessible text contrast.
 - Kanban and the weekly Timeline are two views of the same task data. Completed tasks stay in `DONE` on Kanban and remain visible but struck through and muted on Timeline.
 - The weekly Timeline uses seven contiguous Kanban-like day columns at full available width. Larger compact cards span their date range, preserve duration when dragged to another day, and support week navigation through arrows, a date picker, or horizontal scrolling gestures.

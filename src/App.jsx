@@ -99,55 +99,56 @@ function TaskForm({ task, columns, defaultColumn, onSave, onClose }) {
   </form>;
 }
 
-function TaskCard({ task, onEdit, onComplete, onDeprecate, onDragStart }) {
-  const overdue = task.status === 'active' && task.due < '2026-07-14';
+function TaskCard({ task, onEdit, onArchive, onDragStart }) {
+  const [menuOpen,setMenuOpen]=useState(false);
+  const overdue = task.status === 'active' && task.due < toISODate(new Date());
+  const confirmArchive=event=>{event.stopPropagation();setMenuOpen(false);if(window.confirm(`¿Archivar “${task.title}”? Podrás recuperarla desde Archivo.`))onArchive(task)};
   return <article className={`task-card ${task.status}`} draggable onDragStart={e=>onDragStart(e, task.id)} onClick={()=>onEdit(task)}>
-    <div className="task-top"><button className="check-button" onClick={e=>{e.stopPropagation();onComplete(task)}} aria-label="Completar tarea">{task.status==='completed'&&<Check width={14} height={14} strokeWidth={2.2}/>}</button>
-      <button className="more" onClick={e=>{e.stopPropagation();onDeprecate(task)}} title="Deprecar tarea"><DotsThree width={22} height={22}/></button></div>
+    <div className="task-top"><div className="task-menu-wrap"><button className="more" onClick={event=>{event.stopPropagation();setMenuOpen(value=>!value)}} aria-label={`Opciones de ${task.title}`} aria-expanded={menuOpen}><DotsThree width={22} height={22}/></button>{menuOpen&&<div className="task-menu"><button onClick={confirmArchive}><Archive width={16} height={16}/> Archivar</button></div>}</div></div>
     <h3>{task.title}</h3><p>{task.description}</p>
     <div className={`due ${overdue?'overdue':''}`}><CalendarBlank width={16} height={16}/><span>{overdue?'Venció ':''}{fmt(task.due)}</span></div>
   </article>;
-}
-
-function EditableBoardTitle({ value, onChange }) {
-  const [editingTitle,setEditingTitle]=useState(false);
-  const [draft,setDraft]=useState(value);
-  const startEditing=()=>{setDraft(value);setEditingTitle(true)};
-  const save=()=>{const next=draft.trim();if(next)onChange(next);setEditingTitle(false)};
-  if(editingTitle)return <input className="board-title-input" autoFocus value={draft} onChange={event=>setDraft(event.target.value)} onKeyDown={event=>{if(event.key==='Enter')save();if(event.key==='Escape')setEditingTitle(false)}} onBlur={()=>setEditingTitle(false)} aria-label="Nombre del tablero"/>;
-  return <h1 className="editable-board-title" onDoubleClick={startEditing} tabIndex="0" onKeyDown={event=>{if(event.key==='Enter')startEditing()}} title="Haz doble clic para cambiar el nombre">{value}</h1>;
 }
 
 function EditableColumnTitle({ value, onChange }) {
   const [editingTitle,setEditingTitle]=useState(false);
   const [draft,setDraft]=useState(value);
   const startEditing=()=>{setDraft(value);setEditingTitle(true)};
-  const save=()=>{const next=draft.trim();if(next)onChange(next);setEditingTitle(false)};
-  if(editingTitle)return <input className="column-title-input" autoFocus value={draft} onChange={event=>setDraft(event.target.value)} onClick={event=>event.stopPropagation()} onKeyDown={event=>{if(event.key==='Enter')save();if(event.key==='Escape')setEditingTitle(false)}} onBlur={()=>setEditingTitle(false)} aria-label="Nombre de la columna"/>;
+  const save=()=>{const next=draft.trim().toUpperCase();if(next)onChange(next);setEditingTitle(false)};
+  if(editingTitle)return <input className="column-title-input" autoFocus value={draft} onChange={event=>setDraft(event.target.value.toUpperCase())} onClick={event=>event.stopPropagation()} onKeyDown={event=>{if(event.key==='Enter')save();if(event.key==='Escape')setEditingTitle(false)}} onBlur={()=>setEditingTitle(false)} aria-label="Nombre de la columna"/>;
   return <h2 className="editable-column-title" onDoubleClick={startEditing} tabIndex="0" onKeyDown={event=>{if(event.key==='Enter')startEditing()}} title="Haz doble clic para cambiar el nombre">{value}</h2>;
 }
 
-function Board({ columns, tasks, setTasks, setColumns, openTask, boardTitle, setBoardTitle }) {
+function Board({ columns, tasks, setTasks, setColumns, openTask, onViewTimeline }) {
   const [newColumn, setNewColumn] = useState(false);
   const [columnMenu,setColumnMenu]=useState(null);
   const fixedColumnIds=['todo','doing','done'];
   const todoColumnId=columns.find(column=>column.slug==='todo'||column.id==='todo')?.id;
   const doneColumnId=columns.find(column=>column.slug==='done'||column.id==='done')?.id;
   const isFixedColumn=column=>Boolean(column?.isFixed)||fixedColumnIds.includes(column?.id);
-  const moveTask = (taskId, columnId) => setTasks(items=>items.map(t=>t.id===taskId?{...t,columnId,status:columnId===doneColumnId?'completed':'active',completedAt:columnId===doneColumnId?new Date().toISOString():undefined}:t));
-  const complete = task => setTasks(items=>items.map(t=>t.id===task.id?{...t,columnId:doneColumnId,status:'completed',completedAt:new Date().toISOString()}:t));
-  const deprecate = task => setTasks(items=>items.map(t=>t.id===task.id?{...t,status:'deprecated',deprecatedAt:'2026-07-14'}:t));
+  const moveTask = (taskId, columnId) => setTasks(items=>items.map(t=>String(t.id)===String(taskId)?{...t,columnId,status:columnId===doneColumnId?'completed':'active',completedAt:columnId===doneColumnId?new Date().toISOString():undefined}:t));
+  const archive = task => setTasks(items=>items.map(t=>t.id===task.id?{...t,status:'deprecated',deprecatedAt:new Date().toISOString()}:t));
   const renameColumn = (columnId,title) => setColumns(items=>items.map(column=>column.id===columnId?{...column,title}:column));
   const reorderColumn = (draggedId,targetId) => setColumns(items=>{if(draggedId===targetId||isFixedColumn(items.find(column=>column.id===draggedId)))return items;const dragged=items.find(column=>column.id===draggedId);if(!dragged)return items;const without=items.filter(column=>column.id!==draggedId);const targetIndex=without.findIndex(column=>column.id===targetId);without.splice(targetIndex<0?without.length:targetIndex,0,dragged);return without});
   const deleteColumn = columnId => {if(isFixedColumn(columns.find(column=>column.id===columnId)))return;setTasks(items=>items.map(task=>task.columnId===columnId?{...task,columnId:todoColumnId,status:'active',completedAt:undefined}:task));setColumns(items=>items.filter(column=>column.id!==columnId));setColumnMenu(null)};
-  const handleColumnDrop = (event,columnId) => {event.preventDefault();event.stopPropagation();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn){reorderColumn(draggedColumn,columnId);return}const taskId=Number(event.dataTransfer.getData('text/task'));if(taskId)moveTask(taskId,columnId)};
-  return <div className="board-wrap"><div className="board-header"><div><p className="eyebrow">ESPACIO DE TRABAJO</p><EditableBoardTitle value={boardTitle} onChange={setBoardTitle}/><p className="subtitle">Organiza el trabajo de hoy y mantén el foco.</p></div><button className="primary add-top" onClick={()=>openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button></div>
+  const handleColumnDrop = (event,columnId) => {event.preventDefault();event.stopPropagation();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn){reorderColumn(draggedColumn,columnId);return}const taskId=event.dataTransfer.getData('text/task');if(taskId)moveTask(taskId,columnId)};
+  const overdueCount=tasks.filter(task=>task.status==='active'&&task.due<toISODate(new Date())).length;
+  return <div className="board-wrap"><div className="board-header"><div><p className="eyebrow">RICARDO ALFARO</p><h1>Tablero de estado</h1><p className="subtitle">Organiza el trabajo de hoy y mantén el foco.</p></div><button className="primary add-top" onClick={()=>openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button></div>
+    {overdueCount>0&&<div className="overdue-alert" role="status"><span>Tienes {overdueCount} {overdueCount===1?'tarea vencida':'tareas vencidas'}</span><button onClick={onViewTimeline}>Ver</button></div>}
     <div className="board" role="list">{columns.map(col=>{const list=tasks.filter(t=>t.columnId===col.id&&t.status!=='deprecated');const isFixed=isFixedColumn(col);return <section className={`column ${isFixed?'fixed-column':'custom-column'}`} key={col.id} draggable={!isFixed} onDragStart={event=>{if(!isFixed)event.dataTransfer.setData('text/column',col.id)}} onDragOver={e=>e.preventDefault()} onDrop={event=>handleColumnDrop(event,col.id)}>
       <header className="column-header"><div className="column-title"><span style={{background:col.color}}></span><EditableColumnTitle value={col.title} onChange={title=>renameColumn(col.id,title)}/><b>{list.length}</b></div>{!isFixed&&<div className="column-menu-wrap"><button className="icon-button" onClick={()=>setColumnMenu(current=>current===col.id?null:col.id)} aria-label={`Opciones de ${col.title}`} aria-expanded={columnMenu===col.id}><DotsThree width={22} height={22}/></button>{columnMenu===col.id&&<div className="column-menu"><button onClick={()=>deleteColumn(col.id)}><Trash width={16} height={16}/> Eliminar columna</button></div>}</div>}</header>
-      <div className="task-list">{list.map(t=><TaskCard key={t.id} task={t} onEdit={openTask} onComplete={complete} onDeprecate={deprecate} onDragStart={(e,id)=>{e.stopPropagation();e.dataTransfer.setData('text/task',id)}}/>)}
-      <button className="add-card" onClick={()=>openTask(null,col.id)}><Plus width={18} height={18}/> Añadir tarea</button></div></section>})}
-      <section className="add-column" onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn)reorderColumn(draggedColumn,null)}}>{newColumn?<form onSubmit={e=>{e.preventDefault();const v=e.currentTarget.elements.title.value.trim();if(v){setColumns(c=>[...c,{id:crypto.randomUUID(),slug:`column-${Date.now()}`,title:v.toUpperCase(),color:'#c5b3d3',isFixed:false}]);setNewColumn(false)}}}><input name="title" autoFocus placeholder="Nombre de la columna"/><button className="primary">Añadir</button><button type="button" className="icon-button" onClick={()=>setNewColumn(false)}><X width={20} height={20}/></button></form>:<button onClick={()=>setNewColumn(true)}><Plus width={18} height={18}/> Añadir columna</button>}</section>
+      <div className="task-list">{list.map(t=><TaskCard key={t.id} task={t} onEdit={openTask} onArchive={archive} onDragStart={(e,id)=>{e.stopPropagation();e.dataTransfer.setData('text/task',id)}}/>)}
+      {col.id!==doneColumnId&&<button className="add-card" onClick={()=>openTask(null,col.id)}><Plus width={18} height={18}/> Añadir tarea</button>}</div></section>})}
+      <section className={`add-column ${newColumn?'is-creating':''}`} onDragOver={event=>event.preventDefault()} onDrop={event=>{event.preventDefault();const draggedColumn=event.dataTransfer.getData('text/column');if(draggedColumn)reorderColumn(draggedColumn,null)}}>{newColumn?<form onSubmit={e=>{e.preventDefault();const v=e.currentTarget.elements.title.value.trim();if(v){setColumns(c=>[...c,{id:crypto.randomUUID(),slug:`column-${Date.now()}`,title:v.toUpperCase(),color:'#c5b3d3',isFixed:false}]);setNewColumn(false)}}}><input name="title" autoFocus placeholder="NOMBRE DE LA COLUMNA" onChange={event=>{event.currentTarget.value=event.currentTarget.value.toUpperCase()}}/><div><button type="button" className="icon-button" onClick={()=>setNewColumn(false)} aria-label="Cancelar"><X width={20} height={20}/></button><button className="primary add-column-confirm" aria-label="Añadir columna"><Check width={20} height={20}/></button></div></form>:<button onClick={()=>setNewColumn(true)}><Plus width={18} height={18}/> Añadir columna</button>}</section>
     </div></div>;
+}
+
+function ArchiveView({ tasks, columns, setTasks, openTask }) {
+  const archivedTasks=tasks.filter(task=>task.status==='deprecated');
+  const todoColumnId=columns.find(column=>column.slug==='todo'||column.id==='todo')?.id||'todo';
+  const restore=task=>setTasks(items=>items.map(item=>item.id===task.id?{...item,status:'active',columnId:todoColumnId,deprecatedAt:undefined,completedAt:undefined}:item));
+  const deletePermanently=task=>{if(window.confirm(`¿Eliminar definitivamente “${task.title}”? Esta acción no se puede deshacer.`))setTasks(items=>items.filter(item=>item.id!==task.id))};
+  return <div className="archive-view"><header><p className="eyebrow">RICARDO ALFARO</p><h1>Archivo</h1><p className="subtitle">Recupera tareas archivadas o elimínalas definitivamente.</p></header>{archivedTasks.length?<div className="archive-list">{archivedTasks.map(task=><article key={task.id}><div><h2>{task.title}</h2><p>{task.description||'Sin descripción'}</p><span>Archivada {task.deprecatedAt?new Date(task.deprecatedAt).toLocaleDateString('es-CL'):'recientemente'}</span></div><div><button className="secondary" onClick={()=>openTask(task)}>Ver detalle</button><button className="restore-task" onClick={()=>restore(task)}>Restaurar a TO-DO</button><button className="delete-archive-task" onClick={()=>deletePermanently(task)}><Trash width={16} height={16}/> Eliminar</button></div></article>)}</div>:<div className="archive-empty"><Archive width={32} height={32}/><h2>El archivo está vacío</h2><p>Las tareas que archives desde el tablero aparecerán aquí.</p></div>}</div>;
 }
 
 function Timeline({ tasks, columns, setTasks, openTask }) {
@@ -205,7 +206,7 @@ function Reports({ tasks, openTask, canShare=false }) {
   const effortCounts=[1,2,3,4,5].map(level=>({level,count:periodTasks.filter(task=>(Number(task.effort)||3)===level).length}));
   const maxEffortCount=Math.max(...effortCounts.map(item=>item.count),1);
   const total=Math.max(completed+deprecated+pending,1);
-  const data=[{label:'Terminadas',value:completed,color:'#735a78',icon:Check},{label:'Deprecadas',value:deprecated,color:'#c5b3d3',icon:Archive},{label:'Pendientes',value:pending,color:'#f5cbcb',icon:ClipboardText}];
+  const data=[{label:'Terminadas',value:completed,color:'#735a78',icon:Check},{label:'Archivadas',value:deprecated,color:'#c5b3d3',icon:Archive},{label:'Pendientes',value:pending,color:'#f5cbcb',icon:ClipboardText}];
   const anchor=parseISODate(anchorDate);
   const quarter=Math.floor(anchor.getMonth()/3)+1;
   const years=[2024,2025,2026,2027];
@@ -282,9 +283,9 @@ export function App() {
   if(access?.role==='viewer')return <div className="viewer-shell"><header><div><p className="eyebrow">REPORTE COMPARTIDO · SOLO LECTURA</p><strong>{boardTitle}</strong></div><button className="secondary" onClick={()=>authRepository.signOut()}>Cerrar sesión</button></header>{cloudError&&<div className="cloud-alert" role="alert">{cloudError}</div>}<main><Reports tasks={tasks} openTask={task=>{setEditing(task);setModal(true)}}/></main>{modal&&editing&&<Modal title="Detalle de tarea" onClose={()=>setModal(false)}><ReadOnlyTask task={editing} columnTitle={columns.find(column=>column.id===editing.columnId)?.title}/></Modal>}</div>;
   return <div className={`app-shell ${sidebarCollapsed?'sidebar-collapsed':''}`}><aside><div className="account"><label className="sidebar-search"><MagnifyingGlass width={18} height={18}/><input disabled type="search" placeholder="Buscar" aria-label="Buscar, aún no disponible"/></label><button className="account-sidebar-toggle" onClick={()=>setSidebarCollapsed(value=>!value)} aria-label={sidebarCollapsed?'Expandir menú':'Contraer menú'} title={sidebarCollapsed?'Expandir menú':'Contraer menú'}>{sidebarCollapsed?<SidebarExpand width={20} height={20}/>:<SidebarCollapse width={20} height={20}/>}</button></div>
     <div className="sidebar-label">VISTAS</div><nav><button className={page==='board'?'active':''} aria-current={page==='board'?'page':undefined} onClick={()=>setPage('board')}><Kanban width={21} height={21}/><span>Estado</span><b>{pending}</b></button><button className={page==='timeline'?'active':''} aria-current={page==='timeline'?'page':undefined} onClick={()=>setPage('timeline')}><TableRows width={21} height={21}/><span>Semanal</span><b>{currentWeekTaskCount}</b></button><button className={page==='today'?'active':''} aria-current={page==='today'?'page':undefined} onClick={()=>setPage('today')}><CalendarBlank width={21} height={21}/><span>Diaria</span></button></nav>
-    <div className="sidebar-label">OPCIONES</div><nav><button className={page==='reports'?'active':''} onClick={()=>setPage('reports')}><ChartBar width={21} height={21}/><span>Reportes</span></button><button disabled title="Filtros aún no disponibles"><SlidersHorizontal width={21} height={21}/><span>Filtros</span></button><button disabled title="Archivo de tareas, próximamente"><Archive width={21} height={21}/><span>Archivo</span><b>{tasks.filter(t=>t.status==='deprecated').length}</b></button></nav>
+    <div className="sidebar-label">OPCIONES</div><nav><button className={page==='reports'?'active':''} onClick={()=>setPage('reports')}><ChartBar width={21} height={21}/><span>Reportes</span></button><button disabled title="Filtros aún no disponibles"><SlidersHorizontal width={21} height={21}/><span>Filtros</span></button><button className={page==='archive'?'active':''} aria-current={page==='archive'?'page':undefined} onClick={()=>setPage('archive')}><Archive width={21} height={21}/><span>Archivo</span><b>{tasks.filter(t=>t.status==='deprecated').length}</b></button></nav>
     <div className="aside-bottom"><button className="theme-toggle" onClick={cycleTheme} title={`${themeLabel}. Cambiar apariencia`} aria-label={`${themeLabel}. Cambiar apariencia`}><ThemeIcon width={20} height={20}/><span>{themeLabel}</span></button>{supabaseConfig.isConfigured&&<button onClick={()=>authRepository.signOut()} title="Cerrar sesión"><LogOut width={20} height={20}/><span>Cerrar sesión</span></button>}<button disabled={!access?.canManageAccess} className={page==='settings'?'active':''} onClick={()=>setPage('settings')} title={access?.canManageAccess?'Administrar configuración':'Configuración disponible al conectar Supabase'}><Settings width={20} height={20}/><span>Configuración</span></button></div>
-  </aside><main>{cloudError&&<div className="cloud-alert" role="alert">{cloudError}</div>}{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} boardTitle={boardTitle} setBoardTitle={setBoardTitle}/>:page==='timeline'?<Timeline tasks={tasks} columns={columns} setTasks={setTasks} openTask={openTask}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask} doneColumnId={doneColumnId}/>:page==='settings'?<AccessSettings/>:<Reports tasks={tasks} openTask={openTask} canShare={Boolean(access?.canManageAccess)}/>}</main>
+  </aside><main>{cloudError&&<div className="cloud-alert" role="alert">{cloudError}</div>}{page==='board'?<Board columns={columns} tasks={tasks} setTasks={setTasks} setColumns={setColumns} openTask={openTask} onViewTimeline={()=>setPage('timeline')}/>:page==='timeline'?<Timeline tasks={tasks} columns={columns} setTasks={setTasks} openTask={openTask}/>:page==='today'?<Today tasks={tasks} setTasks={setTasks} openTask={openTask} doneColumnId={doneColumnId}/>:page==='archive'?<ArchiveView tasks={tasks} columns={columns} setTasks={setTasks} openTask={openTask}/>:page==='settings'?<AccessSettings/>:<Reports tasks={tasks} openTask={openTask} canShare={Boolean(access?.canManageAccess)}/>}</main>
   {modal&&<Modal title={editing?'Editar tarea':'Nueva tarea'} onClose={()=>setModal(false)}><TaskForm task={editing} columns={columns} defaultColumn={defaultColumn} onSave={save} onClose={()=>setModal(false)}/>{editing&&<button className="delete-task" onClick={()=>{setTasks(ts=>ts.filter(t=>t.id!==editing.id));setModal(false)}}><Trash width={17} height={17}/> Eliminar definitivamente</button>}</Modal>}
   </div>;
 }
