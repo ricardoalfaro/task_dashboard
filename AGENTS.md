@@ -58,6 +58,6 @@ New tasks default both their start and due dates to the current local date; user
 - Read-only report headers identify the project as `Proyecto` / `Ricardo Alfaro`, provide icon-only theme and future-PDF download controls, and omit sharing controls.
 - The report workspace begins with a single active `Resumen General` tab aligned with the period selector; it does not repeat the project selector, a `Reportes` heading, or a descriptive subtitle.
 - Report period controls are a horizontal year selector, one grouped selector for month/quarter/week, and a calendar icon that opens a date-picker modal. Do not show the selected date range beneath these controls.
-- Reports exclude archived tasks. `Terminadas` and `Pendientes` are the only summary cards; each expands into a visually connected detail block for its tasks.
+- Reports exclude archived tasks. `Terminadas` and `Pendientes` are the only summary cards; each leads with its count, shows only the period percentage, keeps a neutral selected state, and expands into a clean separated detail block for its tasks.
 - The report overview appears before task details and integrates the effort distribution in its right third. Expanded task detail lists show only title and date, open a task detail on click, and scroll internally after six rows.
 - In the report overview, the donut's status legend sits below it; effort uses a compact vertical five-bar chart within the right third. Expanded cards keep the standard neutral-gray border, matching their detail continuation.
