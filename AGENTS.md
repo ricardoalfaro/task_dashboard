@@ -58,3 +58,4 @@ New tasks default both their start and due dates to the current local date; user
 - Read-only report headers identify the project as `Proyecto` / `Ricardo Alfaro`, provide icon-only theme and future-PDF download controls, and omit sharing controls.
 - The report workspace begins with a single active `Resumen General` tab aligned with the period selector; it does not repeat the project selector, a `Reportes` heading, or a descriptive subtitle.
 - Report period controls are a horizontal year selector, one grouped selector for month/quarter/week, and a calendar icon that opens a date-picker modal. Do not show the selected date range beneath these controls.
+- Reports exclude archived tasks. `Terminadas` and `Pendientes` are the only summary cards; each expands into a visually connected detail block for its tasks.
