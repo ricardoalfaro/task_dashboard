@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const required=['SUPABASE_URL','SUPABASE_ANON_KEY','SUPABASE_BOARD_ID','SUPABASE_OWNER_EMAIL','SUPABASE_OWNER_PASSWORD','SUPABASE_VIEWER_EMAIL','SUPABASE_VIEWER_PASSWORD'];
-const missing=required.filter(key=>!process.env[key]);
+const supabaseAnonKey=process.env.SUPABASE_ANON_KEY||process.env.VITE_SUPABASE_ANON_KEY;
+const required=['SUPABASE_URL','SUPABASE_BOARD_ID','SUPABASE_OWNER_EMAIL','SUPABASE_OWNER_PASSWORD','SUPABASE_VIEWER_EMAIL','SUPABASE_VIEWER_PASSWORD'];
+const missing=[...required.filter(key=>!process.env[key]),...(supabaseAnonKey?[]:['SUPABASE_ANON_KEY o VITE_SUPABASE_ANON_KEY'])];
 if(missing.length)throw new Error(`Faltan variables requeridas: ${missing.join(', ')}`);
 
-const {SUPABASE_URL,SUPABASE_ANON_KEY,SUPABASE_BOARD_ID,SUPABASE_OWNER_EMAIL,SUPABASE_OWNER_PASSWORD,SUPABASE_VIEWER_EMAIL,SUPABASE_VIEWER_PASSWORD}=process.env;
+const {SUPABASE_URL,SUPABASE_BOARD_ID,SUPABASE_OWNER_EMAIL,SUPABASE_OWNER_PASSWORD,SUPABASE_VIEWER_EMAIL,SUPABASE_VIEWER_PASSWORD}=process.env;
+const SUPABASE_ANON_KEY=supabaseAnonKey;
 const client=()=>createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const checks=[];
 const pass=(name,details={})=>{checks.push({name,status:'passed',...details});console.log(JSON.stringify({event:'supabase_check_passed',name,...details}))};

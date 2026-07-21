@@ -16,11 +16,11 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 - **Estado:** Terminada
 - **Prioridad:** Media
 - **Objetivo:** Diferenciar claramente las funciones disponibles de las que todavía no se pueden utilizar.
-- **Alcance inicial:** Aplicar un estilo visual deshabilitado a opciones como Semana, Filtros, Archivo, Configuración, Compartir y el buscador superior mientras no tengan comportamiento implementado.
+- **Alcance inicial:** Aplicar un estilo visual deshabilitado únicamente a las opciones cuyo comportamiento no estuviera implementado.
 - **Criterios de aceptación:**
   - Las opciones no habilitadas tienen menor contraste y no muestran estados de interacción engañosos.
   - El cursor y los atributos de accesibilidad comunican que la opción está deshabilitada.
-  - Las funciones disponibles mantienen su apariencia e interacción actuales.
+  - Las funciones disponibles, como Semana, Archivo y el buscador disponible para escritura, mantienen su apariencia e interacción actuales.
 
 ### 2. Publicar en Vercel con acceso mediante contraseña
 
@@ -78,10 +78,10 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 
 - **Estado:** Terminada
 - **Prioridad:** Alta
-- **Objetivo:** Permitir planificar y revisar las mismas tareas tanto en Kanban como en una distribución temporal semanal.
+- **Objetivo:** Permitir planificar y revisar las mismas tareas tanto en Kanban como en una distribución temporal semanal de días hábiles.
 - **Principios acordados:**
   - Kanban y Línea de tiempo son dos representaciones de las mismas tareas; no duplican información.
-  - La Línea de tiempo siempre muestra una semana completa.
+  - La Línea de tiempo muestra los días hábiles, de lunes a viernes; sábado y domingo permanecen ocultos.
   - Las tareas terminadas permanecen en `DONE` dentro del Kanban.
   - En Línea de tiempo, las tareas terminadas permanecen visibles, pero tachadas y con menor contraste.
 
@@ -107,7 +107,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 #### 6.3. Construir la navegación semanal
 
 - **Estado:** Terminada
-- **Alcance:** Mostrar una semana de lunes a domingo con acciones para avanzar, retroceder y volver a la semana actual.
+- **Alcance:** Mostrar una semana laboral de lunes a viernes con acciones para avanzar, retroceder y volver a la semana actual.
 - **Criterios de aceptación:**
   - La interfaz comunica claramente las fechas inicial y final de la semana visible.
   - Se puede navegar a la semana anterior y siguiente.
@@ -147,7 +147,7 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
 #### 6.7. Refinar la Línea de tiempo como Kanban–Gantt
 
 - **Estado:** Terminada
-- **Alcance:** Presentar los siete días como columnas contiguas, ampliar las tarjetas y combinar navegación semanal con selección directa de fecha.
+- **Alcance:** Presentar cinco días hábiles como columnas contiguas, ampliar las tarjetas y combinar navegación semanal con selección directa de fecha.
 - **Criterios de aceptación:**
   - El calendario utiliza todo el ancho disponible de la vista.
   - Cada día se percibe como una columna Kanban unida a las demás.
@@ -156,9 +156,20 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - Se puede navegar con semana anterior/siguiente, volver a la semana actual o elegir una fecha.
   - Un gesto de scroll horizontal hacia la izquierda o derecha cambia una semana por vez.
 
+#### 6.8. Refinar la experiencia semanal de planificación
+
+- **Estado:** Terminada
+- **Alcance:** Consolidar la planificación semanal como una vista de trabajo diaria, con feriados, estados legibles, vencimientos y carga visible.
+- **Criterios de aceptación:**
+  - Un doble clic en una celda libre abre una tarea nueva con ese día como inicio y fin.
+  - Cada día permite marcarse o desmarcarse como feriado; un feriado se atenúa y bloquea creación, arrastre y redimensionamiento de tareas.
+  - Los estados TO-DO, DOING y DONE se distinguen con un semáforo pastel en el tablero y en las cards semanales.
+  - Las tareas vencidas se distinguen con borde rojo y fondo `--color-danger-soft`; el tablero enlaza a la semana que contiene la tarea vencida.
+  - Las cards semanales muestran el esfuerzo con cinco barras: verde para 1–2, amarillo para 3–4 y rojo para 5.
+
 ### 7. Persistencia en la nube y portal de seguimiento externo
 
-- **Estado:** Pendiente
+- **Estado:** En curso
 - **Prioridad:** Alta
 - **Objetivo:** Guardar las tareas de manera centralizada y permitir que superiores autorizados consulten Reportes y el detalle de las tareas desde internet sin poder modificar información.
 - **Principios acordados:**
@@ -269,9 +280,131 @@ Este documento reúne las mejoras planificadas para Task Dashboard. Las tareas e
   - El control muestra etiqueta con el sidebar abierto y solo el icono al estar colapsado.
   - Las vistas principales, tarjetas, formularios, modales y reportes conservan contraste suficiente en modo oscuro.
 
-## Ruta de implementación recomendada
+### 9. Incorporar bloc de Notas vinculado a tareas
 
-La ruta está ordenada por dependencias técnicas y por la posibilidad de entregar valor verificable en cada etapa.
+- **Estado:** Pendiente
+- **Prioridad:** Alta — posterior a 7.2, para que las notas y sus vínculos nazcan directamente en Supabase.
+- **Objetivo:** Reemplazar la opción `Filtros` por `Notas` en la navegación y ofrecer un bloc para resúmenes de reuniones, transcripciones y apuntes operativos, siempre asociado a una tarea.
+- **Alcance:**
+  - La navegación `Filtros` pasa a llamarse `Notas` y utiliza un icono de nota/documento.
+  - Una nota requiere asociarse a una tarea antes de guardarse.
+  - Desde una tarea, el usuario puede vincular opcionalmente una nota existente o crear una nota nueva sin salir del flujo.
+  - Las notas incluyen título, contenido enriquecible a futuro, tarea asociada, autor y marcas de creación/actualización.
+  - Los perfiles `viewer` podrán consultar las notas de las tareas a las que tengan acceso, sin editarlas.
+- **Decisiones de modelado:**
+  - Crear una entidad `task_notes` separada de las `notes` de texto que hoy viven dentro de una tarea; al implementar la épica, renombrar el campo actual a una etiqueta inequívoca como `Notas de la tarea`.
+  - La primera versión vincula cada nota a exactamente una tarea; vínculos con varias tareas se evaluarán después.
+  - La eliminación de una tarea debe definir explícitamente si archiva o elimina las notas asociadas.
+- **Criterios de aceptación:**
+  - No puede guardarse una nota sin una tarea vinculada.
+  - La lista permite encontrar notas por título, contenido y tarea vinculada.
+  - El detalle de una tarea muestra sus notas vinculadas y permite abrirlas.
+  - Crear una nota desde una tarea la deja asociada automáticamente.
+  - Supabase aplica RLS para impedir que un `viewer` cree, edite o elimine notas.
+  - La migración conserva el texto existente de `Notas de la tarea` y no lo confunde con las nuevas notas del bloc.
+
+### 10. Administrar múltiples proyectos con el mismo tablero
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta — posterior a la validación de la persistencia base en Supabase.
+- **Objetivo:** Replicar la estructura y el manejo actual del tablero para múltiples proyectos, manteniendo las tareas, columnas, planificación, reportes, archivo y accesos aislados por proyecto.
+- **Alcance:**
+  - Incorporar una entidad de proyectos y una administración para crear, renombrar, archivar y elegir proyectos.
+  - Reemplazar el selector temporal del encabezado por un dropdown funcional que permita cambiar el proyecto activo desde las vistas principales.
+  - Cada proyecto parte con la misma estructura base de columnas y las mismas reglas de tareas, checklist, esfuerzo, vencimientos y ordenamiento.
+  - Tablero, Semana, Hoy, Terminadas, Archivo, Notas y Reportes consumen exclusivamente la información del proyecto activo.
+  - Definir la relación de propietarios y supervisores por proyecto, sin ampliar los permisos de un proyecto a otro por defecto.
+- **Criterios de aceptación:**
+  - El usuario puede crear y administrar más de un proyecto sin mezclar sus tareas, columnas ni archivos.
+  - Cambiar el dropdown actualiza de inmediato todas las vistas al proyecto seleccionado.
+  - Cada proyecto conserva su propia configuración de columnas, feriados, tareas, orden manual y métricas.
+  - Los roles y enlaces compartidos respetan el alcance del proyecto correspondiente.
+  - La creación de un proyecto nuevo entrega una configuración inicial utilizable y consistente con el tablero actual.
+
+### 11. Internacionalizar la interfaz al inglés
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- **Objetivo:** Permitir que toda la interfaz pueda mostrarse en inglés, manteniendo el español como idioma inicial.
+- **Alcance:**
+  - Centralizar los textos visibles de la interfaz para que puedan traducirse de forma consistente.
+  - Preparar una preferencia de idioma dentro de Configuración con Español e Inglés.
+  - Dejar el control de idioma visible como preparación de la función, pero desactivado hasta que la traducción completa esté disponible.
+  - Traducir navegación, vistas, formularios, validaciones, mensajes, estados, fechas y elementos de accesibilidad.
+- **Criterios de aceptación:**
+  - No quedan textos de interfaz, mensajes de error o etiquetas operativas sin una traducción al inglés definida.
+  - El idioma elegido se conserva entre sesiones cuando la función se habilite.
+  - La preferencia no altera tareas, notas ni contenido escrito por el usuario.
+  - Mientras la función esté desactivada, Configuración comunica claramente que el cambio de idioma estará disponible próximamente.
+
+### 12. Habilitar una experiencia responsive mínima para teléfono
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- **Objetivo:** Permitir consultar y gestionar las funciones esenciales del tablero desde un teléfono sin depender de una pantalla de escritorio.
+- **Alcance:**
+  - Ajustar navegación, encabezado, formularios, modales, tablero, Semana, Hoy, Terminadas, Archivo y Reportes a pantallas pequeñas.
+  - Definir una versión móvil mínima de Kanban y de planificación semanal que priorice lectura, navegación y acciones esenciales.
+  - Mantener táctiles y accesibles los controles de creación, edición, checklist, ordenamiento y navegación temporal.
+  - Revisar densidad, truncado de textos, scroll y zonas de toque para evitar pérdida de información o acciones inaccesibles.
+- **Criterios de aceptación:**
+  - La aplicación se puede usar correctamente en un viewport móvil de 360 px de ancho sin scroll horizontal involuntario.
+  - Se pueden crear, editar, completar y consultar tareas desde teléfono.
+  - El tablero conserva estados, vencimientos y esfuerzo legibles; la planificación semanal mantiene una alternativa utilizable cuando el ancho no permite la distribución de escritorio.
+  - Modales, formularios y menús no quedan recortados fuera del viewport.
+  - La navegación y los objetivos táctiles cumplen un tamaño mínimo cómodo para interacción con dedo.
+
+### 13. Exportar manualmente el tablero completo a CSV
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- **Objetivo:** Entregar al propietario un respaldo manual, portable y consultable del tablero completo.
+- **Alcance:**
+  - Incorporar en la futura sección de Configuración una acción para exportar el proyecto activo como CSV.
+  - Incluir tareas activas, terminadas y archivadas, junto con columnas, fechas, estados, esfuerzo, checklist, notas, links y marcas temporales disponibles.
+  - Definir una estructura de archivo que permita abrirlo en herramientas habituales de planillas sin perder los campos principales.
+  - Generar el archivo bajo demanda sin alterar ningún dato del tablero.
+- **Criterios de aceptación:**
+  - Solo el propietario puede iniciar la exportación.
+  - El archivo se descarga con un nombre que identifica proyecto y fecha de exportación.
+  - La exportación no modifica información ni bloquea el uso normal del tablero.
+  - Cada tarea se representa de forma consistente, incluyendo los datos necesarios para una recuperación manual futura.
+
+### 14. Incorporar un centro de notificaciones
+
+- **Estado:** Pendiente — eventos por definir
+- **Prioridad:** Media
+- **Objetivo:** Comunicar novedades relevantes del tablero sin obligar al usuario a buscarlas manualmente.
+- **Alcance inicial:**
+  - Agregar una entrada de Notificaciones en el sidebar con icono de campana.
+  - Mostrar un punto rojo cuando existan notificaciones nuevas sin leer.
+  - Crear una vista o panel para revisar y marcar como leídas las notificaciones.
+  - Definir posteriormente qué eventos generan una notificación, su prioridad y su persistencia.
+- **Criterios de aceptación:**
+  - El indicador se muestra solo cuando hay novedades no leídas.
+  - El usuario puede distinguir entre notificaciones nuevas y revisadas.
+  - La definición de eventos futuros no exige rediseñar la navegación ni el modelo visual del centro de notificaciones.
+
+## Prioridades actuales
+
+La planificación, los reportes y la apariencia visual están cerrados para la etapa actual. El foco pendiente es dejar operativo el acceso externo y la persistencia real.
+
+1. **7.2 — Verificar persistencia en Supabase.** Conectar la instancia, ejecutar las comprobaciones y confirmar que tareas, columnas y esfuerzo se sincronizan entre sesiones.
+2. **7.3 — Migrar datos locales.** Ejecutar y auditar la importación idempotente contra la instancia de producción.
+3. **7.4 y 7.5 — Validar roles.** Probar el flujo completo con una cuenta `owner` y otra `viewer`, incluyendo revocación de acceso.
+4. **7.6 / Mejora 2 — Desplegar en Vercel.** Enlazar el proyecto, configurar secretos, publicar y comprobar las rutas protegidas desde un dispositivo externo.
+5. **7.7 — Habilitar exportación a Notion.** Configurar secretos, programador y la primera ejecución de respaldo.
+6. **Mejora 9 — Bloc de Notas.** Construir las notas vinculadas después de verificar la persistencia base en Supabase.
+7. **Mejora 10 — Múltiples proyectos.** Diseñar el modelo y la administración por proyecto después de validar la persistencia base.
+8. **Mejora 12 — Responsive para teléfono.** Diseñar e implementar la experiencia móvil mínima sobre las vistas consolidadas.
+9. **Mejora 11 — Inglés.** Centralizar las traducciones y preparar la preferencia cuando los textos operativos estén estabilizados.
+10. **Mejora 13 — Exportación CSV.** Añadir el respaldo manual desde Configuración una vez estabilizada la administración del proyecto.
+11. **Mejora 14 — Notificaciones.** Definir los eventos que generarán avisos antes de implementar su persistencia.
+12. **Mejora 5 — Metas.** Retomar únicamente después de cerrar la nube y acordar su modelo funcional.
+
+## Ruta de implementación histórica
+
+Esta ruta conserva el orden en que se abordaron las dependencias técnicas y las entregas previas. La planificación vigente está en **Prioridades actuales**.
 
 ### Fase 0. Cerrar mejoras pequeñas ya iniciadas
 

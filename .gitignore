@@ -6,3 +6,4 @@ prototype-*.png
 design-comparison.png
 .env*
 !.env.example
+.vercel
