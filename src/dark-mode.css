@@ -1,0 +1,32 @@
+/* Navigation keeps the product blue; the workspace uses a neutral black scale. */
+html[data-theme="dark"]{background:#101114;color-scheme:dark;--color-border:#383b43}
+html[data-theme="dark"] body,html[data-theme="dark"] main{background:#101114;color:#f4f5f7}
+html[data-theme="dark"] aside{background:#1b1d22;border-color:#30333a}
+html[data-theme="dark"] .app-shell>main::before{background:#102f43;border-color:#28546a}
+html[data-theme="dark"] nav button,html[data-theme="dark"] .aside-bottom button,html[data-theme="dark"] .account-sidebar-toggle{color:#d1e6ef}
+html[data-theme="dark"] .sidebar-search{background:#24272d;border-color:#3a3e47;color:#d9dde3}
+html[data-theme="dark"] .sidebar-search input{color:#f4f5f7}
+html[data-theme="dark"] .active{background:#27617b!important;color:#fff!important}
+html[data-theme="dark"] .project-switcher select{background:#0d2838;border-color:#326076;color:#eef8fc}
+html[data-theme="dark"] .column,html[data-theme="dark"] .add-column.is-creating{background:#1b1d22}
+html[data-theme="dark"] .task-card,html[data-theme="dark"] .task-card.active,html[data-theme="dark"] .modal,html[data-theme="dark"] .today-panel,html[data-theme="dark"] .report-cards article,html[data-theme="dark"] .report-panel,html[data-theme="dark"] .effort-panel,html[data-theme="dark"] .completed-report,html[data-theme="dark"] .archive-list,html[data-theme="dark"] .column-menu,html[data-theme="dark"] .task-menu{background:#1e2025!important;border-color:#363a43;color:#f4f5f7!important}
+html[data-theme="dark"] .task-card,html[data-theme="dark"] .modal,html[data-theme="dark"] .today-panel,html[data-theme="dark"] .report-cards article,html[data-theme="dark"] .report-panel,html[data-theme="dark"] .effort-panel,html[data-theme="dark"] .completed-report,html[data-theme="dark"] .archive-list,html[data-theme="dark"] .column-menu,html[data-theme="dark"] .task-menu{border-color:#3d414a}
+html[data-theme="dark"] .task-card.completed{border-color:#2fbf71!important}
+html[data-theme="dark"] .task-card.overdue{border-color:var(--color-danger)!important}
+html[data-theme="dark"] .timeline-panel,html[data-theme="dark"] .timeline-toolbar,html[data-theme="dark"] .timeline-days>div,html[data-theme="dark"] .timeline-body{background-color:#1b1d22}
+html[data-theme="dark"] .timeline-panel,html[data-theme="dark"] .timeline-toolbar,html[data-theme="dark"] .timeline-days,html[data-theme="dark"] .timeline-days>div,html[data-theme="dark"] .timeline-body,html[data-theme="dark"] .timeline-task{border-color:#3d414a}
+html[data-theme="dark"] .timeline-days>div:nth-child(even){background:#202228}
+html[data-theme="dark"] .timeline-days .is-today{background:#292c33}
+html[data-theme="dark"] .timeline-task{background:#272a30;border-color:#3d414a;color:#f4f5f7}
+html[data-theme="dark"] .timeline-task.completed{background:color-mix(in srgb,var(--color-success-soft) 22%,#1e2025);border-color:var(--color-success)}
+html[data-theme="dark"] .timeline-task-open>b,html[data-theme="dark"] .timeline-title span{background:#30333a;color:#f4f5f7}
+html[data-theme="dark"] .modal input,html[data-theme="dark"] .modal textarea,html[data-theme="dark"] .modal select,html[data-theme="dark"] .add-column input,html[data-theme="dark"] .filters select,html[data-theme="dark"] .period-controls select,html[data-theme="dark"] .period-controls input,html[data-theme="dark"] .timeline-date-picker input{background:#17191d;border-color:#3a3e47;color:#f4f5f7}
+html[data-theme="dark"] .secondary,html[data-theme="dark"] .share-report{background:#272a30;border-color:#3a3e47;color:#e7e9ed}
+html[data-theme="dark"] .today-row,html[data-theme="dark"] .today-panel>header,html[data-theme="dark"] .completed-report>header,html[data-theme="dark"] .completed-report>div>button,html[data-theme="dark"] .archive-list article{border-color:#373b44}
+html[data-theme="dark"] .primary{background:#175676;color:#fff}
+html[data-theme="dark"] .primary:hover{background:#10435d}
+html[data-theme="dark"] .donut:after{background:#1e2025}
+html[data-theme="dark"] .subtitle,html[data-theme="dark"] .task-card p,html[data-theme="dark"] .due,html[data-theme="dark"] .today-copy p,html[data-theme="dark"] .today-date,html[data-theme="dark"] .active-period,html[data-theme="dark"] .legend p,html[data-theme="dark"] .report-cards span,html[data-theme="dark"] .report-cards small,html[data-theme="dark"] .archive-list p,html[data-theme="dark"] .timeline-task-copy em{color:#aeb4be}
+html[data-theme="dark"] .task-card .task-checklist::after{background:linear-gradient(to bottom,transparent,#1e2025)!important}
+html[data-theme="dark"] .task-card.overdue .task-checklist::after,html[data-theme="dark"] .task-card.completed .task-checklist::after{background:linear-gradient(to bottom,transparent,#1e2025)!important}
+html[data-theme="dark"] .timeline-body{background-image:repeating-linear-gradient(to right,transparent 0,transparent calc(100% / 7 - 1px),#363a43 calc(100% / 7 - 1px),#363a43 calc(100% / 7)),linear-gradient(to right,#1b1d22 0,#1b1d22 calc(100% / 7),#202228 calc(100% / 7),#202228 calc(200% / 7),#1b1d22 calc(200% / 7),#1b1d22 calc(300% / 7),#202228 calc(300% / 7),#202228 calc(400% / 7),#1b1d22 calc(400% / 7),#1b1d22 calc(500% / 7),#202228 calc(500% / 7),#202228 calc(600% / 7))}

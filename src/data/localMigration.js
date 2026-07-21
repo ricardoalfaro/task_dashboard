@@ -27,3 +27,19 @@ export async function migrateLocalDashboard({storage=localStorage,repository=das
 export function hasCompletedLocalMigration(storage=localStorage,boardId=supabaseConfig.boardId) {
   try{return JSON.parse(storage.getItem(LOCAL_MIGRATION_KEY)||'null')?.boardId===boardId}catch{return false}
 }
+
+// The cloud becomes authoritative after the initial import. Keep the recovery
+// snapshot, but remove the active local task data so it cannot be confused with
+// the synchronized board on a later visit.
+export function retireLocalDashboard(storage=localStorage) {
+  storage.removeItem('td-columns');
+  storage.removeItem('td-tasks');
+  storage.removeItem('td-board-title');
+}
+
+export function saveLocalDashboardSnapshot({boardTitle,columns,tasks},storage=localStorage) {
+  storage.setItem('td-columns',JSON.stringify(columns));
+  storage.setItem('td-tasks',JSON.stringify(tasks));
+  storage.setItem('td-board-title',boardTitle);
+  storage.setItem('td-local-sandbox-seed',new Date().toISOString());
+}

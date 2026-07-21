@@ -14,6 +14,7 @@ const mapTask = task => ({
   columnId: task.column_id,
   title: task.title,
   description: task.description,
+  checklist: task.checklist || [],
   notes: task.notes,
   link: task.link,
   start: task.start_date,
@@ -21,6 +22,8 @@ const mapTask = task => ({
   effort: task.effort,
   status: task.status,
   position: task.position,
+  boardPosition: task.board_position,
+  manualBoardOrderAt: task.manual_board_ordered_at,
   createdAt: task.created_at,
   completedAt: task.completed_at,
   deprecatedAt: task.deprecated_at,
@@ -43,6 +46,7 @@ const taskRecord = (boardId,task) => ({
   column_id: task.columnId,
   title: task.title,
   description: task.description || '',
+  checklist: Array.isArray(task.checklist)?task.checklist:[],
   notes: task.notes || '',
   link: task.link || '',
   start_date: task.start,
@@ -50,6 +54,8 @@ const taskRecord = (boardId,task) => ({
   effort: Number(task.effort) || 3,
   status: task.status,
   position: task.position || 0,
+  board_position: task.boardPosition || 0,
+  manual_board_ordered_at: task.manualBoardOrderAt || null,
   completed_at: task.completedAt || null,
   deprecated_at: task.deprecatedAt || null,
 });
@@ -70,6 +76,7 @@ const localTaskRecord = (boardId,task,columnId,position) => ({
   column_id: columnId,
   title: task.title,
   description: task.description || '',
+  checklist: Array.isArray(task.checklist)?task.checklist:[],
   notes: task.notes || '',
   link: task.link || '',
   start_date: task.start || task.due,
@@ -77,6 +84,8 @@ const localTaskRecord = (boardId,task,columnId,position) => ({
   effort: Number(task.effort) || 3,
   status: task.status || 'active',
   position,
+  board_position: task.boardPosition || position,
+  manual_board_ordered_at: task.manualBoardOrderAt || null,
   completed_at: task.completedAt || null,
   deprecated_at: task.deprecatedAt || null,
   created_at: task.createdAt || undefined,
@@ -130,6 +139,22 @@ export const dashboardRepository = {
     const client=requireSupabase();
     const before=await this.count(boardId);
     const columnRows=columns.map(localColumnRecord.bind(null,boardId));
+
+    // A new board already has its fixed columns in positions 0–2. Move every
+    // remote column outside the final range before importing the local order;
+    // otherwise Postgres can reject an otherwise valid upsert halfway through
+    // because (board_id, position) must remain unique at every row update.
+    const existingColumnsResult=await client.from('columns').select('id,position').eq('board_id',boardId);
+    const existingColumns=resultOrThrow(existingColumnsResult,'No se pudieron preparar las columnas para migración');
+    const stagingBase=Math.max(10000,...existingColumns.map(column=>Number(column.position)||0))+1;
+    for(let index=0;index<existingColumns.length;index+=1){
+      const stagingResult=await client
+        .from('columns')
+        .update({position:stagingBase+index})
+        .eq('id',existingColumns[index].id);
+      resultOrThrow(stagingResult,'No se pudieron preparar las columnas para migración');
+    }
+
     const columnsResult=await client.from('columns').upsert(columnRows,{onConflict:'board_id,slug'}).select('*');
     const remoteColumns=resultOrThrow(columnsResult,'No se pudieron migrar las columnas');
     const columnIds=new Map(remoteColumns.map(column=>[column.legacy_id,column.id]));
@@ -166,8 +191,14 @@ export const dashboardRepository = {
   async syncSnapshot(boardId,{boardTitle,columns,tasks}) {
     const client=requireSupabase();
     await this.updateBoardName(boardId,boardTitle);
+
+    // A prior interrupted sync can leave a column in the staging range. Pick a
+    // fresh range above every existing position so a retry never collides with it.
+    const existingColumnsResult=await client.from('columns').select('position').eq('board_id',boardId);
+    const existingColumns=resultOrThrow(existingColumnsResult,'No se pudieron preparar las columnas para sincronizar');
+    const stagingBase=Math.max(10000,...existingColumns.map(column=>Number(column.position)||0))+1;
     for(let index=0;index<columns.length;index+=1){
-      await this.upsertColumn(boardId,{...columns[index],position:10000+index});
+      await this.upsertColumn(boardId,{...columns[index],position:stagingBase+index});
     }
     for(let index=0;index<columns.length;index+=1){
       await this.upsertColumn(boardId,{...columns[index],position:index});

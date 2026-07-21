@@ -1,0 +1,5 @@
+.today-header h1{display:flex;align-items:center;gap:10px}
+.page-title-count{display:inline-grid;place-items:center;min-width:24px;height:24px;padding:0 8px;border-radius:12px;background:var(--color-soft);color:var(--color-primary);font-size:12px;font-weight:700;letter-spacing:0}
+.task-card.completed{border-color:var(--status-done-border)!important}
+.archive-task-marker{background:var(--color-danger-soft);border-color:var(--color-danger-soft);color:var(--color-danger)}
+html[data-theme="dark"] .page-title-count{background:#2a2d34;color:#d9dde3}
