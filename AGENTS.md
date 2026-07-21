@@ -59,3 +59,4 @@ New tasks default both their start and due dates to the current local date; user
 - The report workspace begins with a single active `Resumen General` tab aligned with the period selector; it does not repeat the project selector, a `Reportes` heading, or a descriptive subtitle.
 - Report period controls are a horizontal year selector, one grouped selector for month/quarter/week, and a calendar icon that opens a date-picker modal. Do not show the selected date range beneath these controls.
 - Reports exclude archived tasks. `Terminadas` and `Pendientes` are the only summary cards; each expands into a visually connected detail block for its tasks.
+- The report overview appears before task details and integrates the effort distribution in its right third. Expanded task detail lists show only title and date, open a task detail on click, and scroll internally after six rows.
