@@ -54,13 +54,14 @@ export const authRepository={
     return (await manageMembers('list',{boardId})).members;
   },
 
-  async setMemberAccess(boardId,{email,password,role='viewer'}) {
-    if(!['owner','viewer'].includes(role))throw new Error('El rol indicado no es válido.');
-    return (await manageMembers('upsert',{boardId,email,password,role})).member;
+  async createReportUser(boardId,{email,password}) {
+    if(!password || password.length<8)throw new Error('La contraseña temporal debe tener al menos 8 caracteres.');
+    return (await manageMembers('upsert',{boardId,email,password,role:'viewer'})).member;
   },
 
-  async setMemberRole(boardId,member,role='viewer') {
-    return this.setMemberAccess(boardId,{email:member.email,role});
+  async updateReportPassword(boardId,{email,password}) {
+    if(!password || password.length<8)throw new Error('La nueva contraseña debe tener al menos 8 caracteres.');
+    return (await manageMembers('upsert',{boardId,email,password,role:'viewer'})).member;
   },
 
   async revokeMember(boardId,userId) {

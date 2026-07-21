@@ -49,7 +49,9 @@ export default {
       }
 
       if(action==='upsert'){
-        if(!email||!['viewer','owner'].includes(role))return json({error:'Correo o rol inválido.'},400);
+        // Report accounts are always read-only. The primary owner is created
+        // during bootstrap and cannot be granted through this endpoint.
+        if(!email||role!=='viewer')return json({error:'Solo se pueden crear cuentas de reporte de solo lectura.'},400);
         let user=await findUserByEmail(ctx.supabaseAdmin,email.trim());
         if(!user){
           if(!password||password.length<8)return json({error:'La contraseña temporal debe tener al menos 8 caracteres.'},400);
