@@ -5,7 +5,7 @@ import {
   MoreHoriz as DotsThree, KanbanBoard as Kanban, Search as MagnifyingGlass,
   Plus, Flash as Lightning, Trash, Xmark as X,
   SidebarCollapse, SidebarExpand, TableRows, Settings, ShareAndroid, Download,
-  Computer, HalfMoon, SunLight, NavArrowLeft, NavArrowRight, LogOut, Bell
+  Computer, HalfMoon, SunLight, NavArrowDown, NavArrowLeft, NavArrowRight, LogOut, Bell
 } from 'iconoir-react';
 import { authRepository } from './data/authRepository.js';
 import { dashboardRepository } from './data/dashboardRepository.js';
@@ -65,7 +65,11 @@ function Modal({ title, onClose, children }) {
 }
 
 function ProjectSwitcher() {
-  return <label className="project-switcher"><span>Proyecto</span><select value="ricardo-alfaro" onChange={()=>{}} aria-label="Proyecto actual"><option value="ricardo-alfaro">{projectName}</option></select></label>;
+  const [isExpanded,setIsExpanded]=useState(false);
+  return <div className={`project-switcher ${isExpanded?'is-expanded':''}`}>
+    <button className="project-switcher-tab" type="button" onClick={()=>setIsExpanded(value=>!value)} aria-expanded={isExpanded} aria-controls="project-switcher-panel" aria-label={isExpanded?'Ocultar proyecto':'Mostrar proyecto'} title={isExpanded?'Ocultar proyecto':'Mostrar proyecto'}><NavArrowDown width={18} height={18}/></button>
+    {isExpanded&&<label className="project-switcher-panel" id="project-switcher-panel"><span>Proyecto</span><select value="ricardo-alfaro" onChange={()=>{}} aria-label="Proyecto actual"><option value="ricardo-alfaro">{projectName}</option></select></label>}
+  </div>;
 }
 
 function AuthScreen({ onSignedIn }) {
