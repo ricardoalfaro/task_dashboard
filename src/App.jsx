@@ -218,7 +218,7 @@ function Timeline({ tasks, columns, setTasks, openTask, holidays, setHolidays, i
   const workEnd=days[days.length-1];
   const visibleTasks=tasks.map((task,index)=>({...task,timelinePosition:task.position??index})).filter(task=>task.status!=='deprecated'&&(task.start||task.due)<=workEnd&&task.due>=range.start).sort((a,b)=>a.timelinePosition-b.timelinePosition||(a.start||a.due).localeCompare(b.start||b.due)||b.due.localeCompare(a.due));
   const columnById=new Map(columns.map(column=>[column.id,column]));
-  const taskStatusLabel=task=>{const title=columnById.get(task.columnId)?.title||'Sin estado';return title.charAt(0).toUpperCase()+title.slice(1).toLowerCase()};
+  const taskStatusLabel=task=>(columnById.get(task.columnId)?.title||'Sin estado').toUpperCase();
   const taskStatusTone=task=>columnTone(columnById.get(task.columnId));
   const isOverdue=task=>task.status==='active'&&task.due<today;
   const isOverdueDoing=task=>{const column=columnById.get(task.columnId);return (column?.slug==='doing'||column?.id==='doing')&&task.status!=='completed'&&task.due<today};
