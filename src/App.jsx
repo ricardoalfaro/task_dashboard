@@ -296,7 +296,7 @@ function Today({ tasks, setTasks, openTask }) {
 
   return <div className="today-view">
     <div className="today-header">
-      <div><ProjectSwitcher/><h1>Buen día! <span className="page-title-count">{list.length}</span></h1><p className="subtitle">Tu carga para hoy y las tareas atrasadas.</p></div>
+      <div><ProjectSwitcher/><h1>Buen día Ricardo! <span className="page-title-count">{list.length}</span></h1><p className="subtitle">Esta es tu carga de tareas para hoy{overdueTasks.length?' y ojo con las vencidas.':'.'}</p></div>
       <button className="primary" onClick={() => openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button>
     </div>
     {overdueTasks.length>0&&<div className="overdue-alert" role="status"><span>Tienes {overdueTasks.length} {overdueTasks.length===1?'tarea vencida':'tareas vencidas'}</span></div>}
