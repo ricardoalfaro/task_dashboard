@@ -1,0 +1,62 @@
+/* Semantic design tokens. Components consume these names; palettes live only here. */
+:root{
+  color-scheme:light;
+  --color-canvas:#fff;
+  --color-surface:#fff;
+  --color-surface-alt:#f5f7ff;
+  --color-text:#25282f;
+  --color-text-muted:#69707d;
+  --color-border:#e9eaf0;
+  --color-focus:#1747e81f;
+  --color-shadow:rgba(48,54,83,.075);
+  --color-primary:#1747e8;
+  --color-interaction:#4ba3c3;
+  --color-soft:#edf1ff;
+  --color-highlight:#ef233c;
+  --color-danger:#d62839;
+  --color-danger-soft:#fff5f5;
+  --color-archive:#ba324f;
+  --color-todo:var(--color-danger);
+  --color-doing:#b77900;
+  --color-done:#18794e;
+  --status-todo-bg:#fee2e2;
+  --status-todo-text:#b4232c;
+  --status-doing-bg:#fef3c7;
+  --status-doing-text:#9a6700;
+  --status-done-bg:#dcfce7;
+  --status-done-border:#86efac;
+  --status-done-text:#18794e;
+  --red:var(--color-danger);
+  --cream:var(--color-canvas);
+  --muted:var(--color-text-muted);
+  --line:var(--color-border);
+}
+
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --color-canvas:#0c1020;
+  --color-surface:#121827;
+  --color-surface-alt:#151c2d;
+  --color-text:#f4f6ff;
+  --color-text-muted:#aeb7ca;
+  --color-border:#2b3650;
+  --color-focus:#8f72ff33;
+  --color-shadow:rgba(0,0,0,.3);
+  --color-primary:#9eb0ff;
+  --color-interaction:#8f72ff;
+  --color-soft:#242d4a;
+  --color-highlight:#ff7180;
+  --color-danger:#ff7180;
+  --color-danger-soft:#361b27;
+  --color-archive:#d8a6ff;
+  --color-todo:#ff8895;
+  --color-doing:#ffd66e;
+  --color-done:#75d6a0;
+  --status-todo-bg:#592335;
+  --status-todo-text:#fecdd3;
+  --status-doing-bg:#59431a;
+  --status-doing-text:#fef3c7;
+  --status-done-bg:#174b37;
+  --status-done-border:#4ade80;
+  --status-done-text:#dcfce7;
+}

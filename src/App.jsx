@@ -294,13 +294,13 @@ function Today({ tasks, setTasks, openTask }) {
   const completedToday=task=>task.status==='completed'&&String(task.completedAt||'').slice(0,10)===today;
   const list = tasks.filter(task => task.status !== 'deprecated' && (task.due === today || (task.status==='active' && task.due<today) || completedToday(task))).sort((a,b)=>{const priority=task=>task.status==='active'&&task.due<today?0:task.status==='active'?1:2;return priority(a)-priority(b)||a.due.localeCompare(b.due)});
   const overdueTasks=tasks.filter(task=>task.status==='active'&&task.due<today).sort((a,b)=>a.due.localeCompare(b.due));
+  const workloadSummary=`Tu carga para hoy es de ${list.length} ${list.length===1?'tarea':'tareas'}${overdueTasks.length?` y tienes ${overdueTasks.length} ${overdueTasks.length===1?'atrasada':'atrasadas'}.`:'.'}`;
 
   return <div className="today-view">
     <div className="today-header">
-      <div><ProjectSwitcher/><h1>Buen día Ricardo! <span className="page-title-count">{list.length}</span></h1><p className="subtitle">Esta es tu carga de tareas para hoy{overdueTasks.length?' y ojo con las vencidas.':'.'}</p></div>
+      <div><ProjectSwitcher/><h1>Buen día Ricardo! <span className="page-title-count">{list.length}</span></h1><p className="subtitle">{workloadSummary}</p></div>
       <button className="primary" onClick={() => openTask(null)}><Plus width={18} height={18} strokeWidth={2.2}/> Nueva tarea</button>
     </div>
-    {overdueTasks.length>0&&<div className="overdue-alert" role="status"><span>Tienes {overdueTasks.length} {overdueTasks.length===1?'tarea vencida':'tareas vencidas'}</span></div>}
     <section className="today-panel">
       <div className="today-list">{list.length ? list.map(task => <article className={`today-row home-task-row ${task.status==='active'&&task.due<today?'overdue':''}`} key={task.id} onClick={() => openTask(task)}>
         <div className="today-copy"><h3>{task.title}</h3><p>{normalizeChecklist(task.checklist,task.description,task.id).map(item=>item.text.trim()).filter(Boolean).join(', ')}</p></div>

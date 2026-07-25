@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App.jsx";
 import "./styles.css";
 import "./page-title-count.css";
+import "./theme-tokens.css";
 import "./dark-mode.css";
 
 createRoot(document.getElementById("root")).render(
