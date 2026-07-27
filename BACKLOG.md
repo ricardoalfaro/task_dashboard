@@ -446,3 +446,129 @@ Esta ruta conserva el orden en que se abordaron las dependencias técnicas y las
 ### Fase 7. Ampliaciones posteriores
 
 17. **Mejora 5 — Metas.** Retomar su definición después de estabilizar tareas, periodos, reportes y planificación temporal.
+
+## Beta gratuito multiusuario
+
+Objetivo: habilitar un F&F real de alrededor de 100 personas, con varios proyectos por persona, usando un único Supabase multi-tenant antes de pensar en monetización.
+
+### 1. Modelo multiusuario y multiproyecto
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Un usuario puede crear, seleccionar, renombrar y archivar sus propios proyectos.
+- Las tareas y columnas se aíslan por proyecto; el tablero actual de Ricardo se conserva como su primer proyecto.
+
+### 2. Aislamiento de datos con RLS
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Aplicar políticas por proyecto y membresía, no solo por rol global.
+- Verificar con pruebas de API que nadie pueda leer o escribir registros de otro proyecto; los viewers siguen en solo lectura.
+
+### 3. Sincronización incremental y conflictos
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Reemplazar el envío del snapshot completo por mutaciones por tarea, columna o proyecto.
+- Mostrar errores recuperables ante fallas de red y evitar sobrescrituras silenciosas entre personas.
+
+### 4. Observabilidad y límites del beta
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Revisar semanalmente tamaño de base, egreso, almacenamiento, MAU y errores de sincronización.
+- Definir alertas y el umbral para pasar a Supabase Pro: datos importantes, necesidad de backups o cercanía a límites de base/egreso.
+
+### 5. Respaldo y recuperación
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Exportar proyectos y tareas a JSON/CSV, con procedimiento probado de restauración sin duplicados.
+- Definir respaldo periódico mientras se usa Free, que no incluye backups automáticos.
+
+### 6. Onboarding y soporte del beta
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Invitación, creación de cuenta y primer proyecto sin ayuda manual.
+- Identificar el producto como beta, dar un canal de feedback y permitir revocar accesos de forma segura.
+
+### 7. Responsive design
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Adaptar las vistas de Bienvenida, Tablero General, Planificador semanal, Historial de tareas, Archivo, formularios y Reportes a escritorio, tablet y móvil.
+- Definir puntos de quiebre, densidad, navegación lateral, tablas, cards y acciones para que las tareas sigan siendo legibles y operables sin depender de un viewport de escritorio.
+- Validar los flujos principales en anchos pequeños, medios y grandes antes del beta multiusuario.
+
+### 8. Layout Bienvenida
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Dar mayor jerarquía visual a Bienvenida como portada personal: saludo, carga del día, tareas vencidas y próximos focos.
+- Definir una composición que comunique claramente qué requiere atención inmediata sin convertirse en otra lista de tareas.
+
+### 9. Buscador de tareas
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Activar el buscador global del sidebar para encontrar tareas por título, checklist, notas y proyecto.
+- Mostrar resultados relevantes de forma rápida, respetando los permisos del usuario y permitiendo abrir la tarea desde el resultado.
+
+### 10. Funcionalidad de Configuración
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Definir y consolidar las opciones que puede administrar el propietario desde Configuración.
+- Incluir la administración de cuentas de acceso solo lectura: crear, renovar contraseña, revocar y revisar a qué proyecto o reporte tienen acceso.
+- Definir otras preferencias configurables: perfil del propietario, proyectos, apariencia, notificaciones, exportaciones, retención de datos y parámetros del beta.
+- Asegurar que los perfiles de solo lectura nunca puedan ver ni modificar estas opciones.
+
+### 11. Asistente de IA económico
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Conectar un modelo de IA de bajo costo para asistir la búsqueda de información, sugerir próximos pasos y responder consultas básicas sobre los proyectos y tareas autorizados.
+- Definir casos iniciales: búsqueda en lenguaje natural, resumen de carga, sugerencias de priorización y respuestas basadas exclusivamente en las tareas visibles para el usuario.
+- Incorporar límites de uso, registro de costos, manejo explícito de errores y una política de privacidad para el contenido enviado al modelo.
+- Mantener al usuario al control: la IA no crea, edita, archiva ni comparte información sin una confirmación explícita.
+
+### 12. Landing Page del producto
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Diseñar y publicar una landing pública que explique el propósito del producto, sus principales vistas y el acceso al beta.
+- Incluir propuesta de valor, capturas o demostración, beneficios, estado beta, canal de feedback y una llamada a la acción para solicitar o recibir acceso.
+- Separar claramente la landing pública del espacio autenticado de trabajo.
+
+### 13. Notificaciones diarias por correo
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Enviar un resumen diario por correo con tareas pendientes, vencidas y foco del día.
+- Permitir definir horario, zona horaria, días de envío y desactivación por usuario.
+- Incluir enlaces directos a las tareas sin exponer información a destinatarios no autorizados.
+
+### 14. Autenticación con Google y correo/contraseña
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Incorporar login OAuth con Google y completar el flujo de registro, inicio de sesión, recuperación y cambio de contraseña mediante correo.
+- Asociar de forma segura los usuarios autenticados con sus proyectos, membresías y permisos existentes.
+- Manejar errores, verificación de correo, sesiones expiradas y cierre de sesión de forma clara.
+
+### 15. Deuda técnica y refactor de CSS
+
+- **Estado:** Pendiente
+- **Prioridad:** Alta
+- Consolidar el sistema de estilos para eliminar reglas históricas duplicadas y cascadas que se pisan entre sí.
+- Separar de forma mantenible tokens, estilos compartidos, estilos claros y estilos nocturnos; documentar convenciones de componentes y responsive design.
+- Reducir especificidad innecesaria, mejorar legibilidad y dejar una base segura para futuras vistas sin regresiones visuales.
+
+### 16. Integración con Notion como respaldo
+
+- **Estado:** Pendiente
+- **Prioridad:** Media
+- Integrar exportaciones programadas y unidireccionales desde Supabase hacia Notion como respaldo visible y apoyo de consulta.
+- Mantener Supabase como única fuente de verdad; los cambios hechos en Notion no deben sobrescribir tareas ni columnas del producto.
+- Usar IDs estables de Supabase para evitar duplicados, registrar ejecuciones y permitir reintentos seguros.

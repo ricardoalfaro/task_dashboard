@@ -233,6 +233,7 @@ html[data-theme="dark"] body,html[data-theme="dark"] .app-shell>main{background:
 
 /* Shared weekly control typography. */
 .timeline-today{font-size:13px}
+html[data-theme="light"] .timeline-today{border-color:#aeb8cc}
 
 /* Columns use a persistent, user-selected emoji instead of a fixed color dot. */
 .column-emoji-picker{position:relative;display:flex;align-items:center}
@@ -250,3 +251,56 @@ html[data-theme="dark"] body,html[data-theme="dark"] .app-shell>main{background:
 .board .column{width:auto;min-width:250px}
 .board-add-column{width:38px;height:38px;padding:0;border:1px solid var(--color-border);border-radius:50%;background:var(--color-surface);color:var(--color-text-muted);display:grid;place-items:center;align-self:start;transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease}
 .board-add-column:hover,.board-add-column:focus-visible{border-color:var(--color-interaction);background:var(--color-surface-alt);color:var(--color-primary);transform:scale(1.06);outline:none}
+
+/* Planning expands into the available workspace without becoming oversized on tall screens. */
+.timeline-panel{min-height:calc(100vh - 260px);display:flex;flex-direction:column}
+.timeline-scroll{min-height:0;flex:1;display:flex}
+.timeline-calendar{width:100%;display:flex;flex-direction:column}
+.timeline-body{flex:1}
+@media(min-height:1050px){.timeline-panel{min-height:66.666vh}}
+@media(max-width:600px){.timeline-panel{min-height:calc(100vh - 220px)}}
+
+/* Weekly cards gain room for their two-line title and scheduling details. */
+.timeline-task{height:96px}
+.timeline-task-row{min-height:120px}
+
+/* DONE cards are a concise record rather than a checklist workspace. */
+.board .task-card.completed{height:80px}
+.board .task-card.completed h3{margin-bottom:5px}
+
+/* Planning keeps page chrome fixed and scrolls only its task lanes when needed. */
+.timeline-view{height:100%;min-height:0;display:flex;flex-direction:column;padding-bottom:34px}
+.timeline-header{flex:none}
+.timeline-panel{min-height:0;flex:1}
+.timeline-scroll{overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none}
+.timeline-scroll::-webkit-scrollbar,.timeline-body::-webkit-scrollbar{display:none}
+.timeline-scroll,.timeline-calendar{height:100%}
+.timeline-calendar{min-height:0}
+.timeline-body{height:100%;min-height:0;overflow-y:scroll;overscroll-behavior:contain;scrollbar-width:none;-ms-overflow-style:none}
+.timeline-empty{min-height:100%;height:100%}
+@media(max-width:600px){.timeline-view{padding-bottom:18px}}
+
+/* Completed history follows the planner's full-width workspace rhythm. */
+.completed-tasks-view{max-width:none;margin:0;padding-inline:34px;padding-bottom:34px}
+.completed-history-header,.completed-tasks-view .today-row{grid-template-columns:minmax(0,1fr) 62px 138px 30px;column-gap:8px}
+.completed-history-header{min-height:42px;padding:0 24px;display:grid;align-items:center;border-bottom:1px solid var(--color-border);color:var(--color-text-muted);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.completed-task-effort{justify-content:flex-start}
+.completed-task-archive{color:var(--color-archive)}.completed-task-archive:hover,.completed-task-archive:focus-visible{background:color-mix(in srgb,var(--color-archive) 10%,transparent);color:var(--color-archive)}
+@media(max-width:850px){.completed-tasks-view{padding-inline:28px;padding-bottom:28px}}
+@media(max-width:600px){.completed-tasks-view{padding-inline:18px;padding-bottom:18px}.completed-history-header,.completed-tasks-view .today-row{grid-template-columns:minmax(0,1fr) 48px 106px 30px}.completed-history-header{padding-inline:15px;font-size:9px}.completed-tasks-view .today-row{padding-inline:15px}.completed-task-date{font-size:10px}.completed-task-date svg{display:none}}
+
+/* Archive mirrors task history while retaining recovery and permanent deletion. */
+.today-view.archive-table-view{max-width:none;margin:0;padding-inline:34px;padding-bottom:34px}
+.archive-history-header,.archive-table-view .archive-task-row{grid-template-columns:minmax(0,1fr) 62px 138px 88px 30px;column-gap:8px}
+.archive-history-header{min-height:42px;padding:0 24px;display:grid;align-items:center;border-bottom:1px solid var(--color-border);color:var(--color-text-muted);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.archive-task-effort{justify-content:flex-start}.archive-table-view .restore-task{justify-self:start;padding:7px 10px}.archive-table-view .delete-archive-task{justify-self:center}
+.empty-archive-button{border:1px solid color-mix(in srgb,var(--color-danger) 42%,transparent);border-radius:8px;background:transparent;color:var(--color-danger);padding:9px 12px;display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}.empty-archive-button:hover{background:color-mix(in srgb,var(--color-danger) 9%,transparent)}
+@media(max-width:850px){.today-view.archive-table-view{padding-inline:28px;padding-bottom:28px}}
+@media(max-width:600px){.today-view.archive-table-view{padding-inline:18px;padding-bottom:18px}.archive-history-header,.archive-table-view .archive-task-row{grid-template-columns:minmax(0,1fr) 48px 106px 74px 30px}.archive-history-header{padding-inline:15px;font-size:9px}.archive-table-view .archive-task-row{padding-inline:15px}.archive-created-date{font-size:10px}.archive-created-date svg{display:none}.archive-table-view .restore-task{padding:6px 8px;font-size:10px}.empty-archive-button{font-size:10px;padding:8px 10px}}
+
+/* Empty collections become a centered, full-height workspace state. */
+.completed-tasks-view:has(.today-empty),.archive-table-view:has(.today-empty){height:100%;min-height:0;display:flex;flex-direction:column}
+.completed-tasks-view:has(.today-empty) .today-panel,.archive-table-view:has(.today-empty) .today-panel{min-height:0;flex:1;display:flex}
+.completed-tasks-view:has(.today-empty) .today-list,.archive-table-view:has(.today-empty) .today-list{flex:1;display:flex}
+.completed-tasks-view:has(.today-empty) .today-empty,.archive-table-view:has(.today-empty) .today-empty{width:100%;min-height:0;flex:1}
+.completed-tasks-view:has(.today-empty) .completed-history-header,.archive-table-view:has(.today-empty) .archive-history-header{display:none}
