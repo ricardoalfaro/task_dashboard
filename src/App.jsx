@@ -105,9 +105,9 @@ function AccessSettings() {
 
 function TaskForm({ task, columns, defaultColumn, defaultDate, onSave, onClose }) {
   const [form, setForm] = useState(() => {
-    if(task) return {...task,start:task.start||task.due,effort:task.effort||3,notes:task.notes||'',link:task.link||'',checklist:normalizeChecklist(task.checklist,task.description,task.id)};
+    if(task) return {...task,start:task.start||task.due||'',due:task.due||'',hasDates:Boolean(task.start||task.due),effort:task.effort||3,notes:task.notes||'',link:task.link||'',checklist:normalizeChecklist(task.checklist,task.description,task.id)};
     const date=defaultDate||toISODate(new Date());
-    return {title:'',checklist:[],notes:'',link:'',start:date,due:date,columnId:defaultColumn||columns[0].id,effort:3};
+    return {title:'',checklist:[],notes:'',link:'',start:date,due:date,hasDates:true,columnId:defaultColumn||columns[0].id,effort:3};
   });
   const [dateError,setDateError]=useState(''), [checklistError,setChecklistError]=useState('');
   const change = e => setForm({ ...form, [e.target.name]: e.target.value });
@@ -115,13 +115,14 @@ function TaskForm({ task, columns, defaultColumn, defaultDate, onSave, onClose }
   const doingColumnId=columns.find(column=>column.slug==='doing'||column.id==='doing')?.id;
   const todoColumnId=columns.find(column=>column.slug==='todo'||column.id==='todo')?.id;
   const updateChecklist=(index,changeSet)=>setForm(current=>{const checklist=current.checklist.map((item,itemIndex)=>itemIndex===index?{...item,...changeSet}:item);const hasStarted=checklist.some(item=>item.checked);const columnId=!hasStarted?todoColumnId:checklistComplete(checklist)?doneColumnId:doingColumnId;return {...current,checklist,columnId}});
-  return <form onSubmit={e => { e.preventDefault(); if(form.start>form.due){setDateError('La fecha de inicio no puede ser posterior a la fecha de entrega.');return}if(form.columnId===doingColumnId&&form.checklist.length!==1&&!form.checklist.some(item=>item.checked)){setChecklistError('Marca al menos un ítem del checklist antes de pasar la tarea a DOING.');return}if(form.columnId===doneColumnId&&form.checklist.length&&!checklistComplete(form.checklist)){setChecklistError('Marca todos los ítems del checklist antes de pasar la tarea a DONE.');return}setDateError('');setChecklistError('');if(form.title.trim()) onSave({...form,columnId:checklistComplete(form.checklist)?doneColumnId:form.columnId,description:checklistDescription(form.checklist)}); }}>
+  return <form onSubmit={e => { e.preventDefault(); if(form.hasDates&&form.start>form.due){setDateError('La fecha de inicio no puede ser posterior a la fecha de entrega.');return}if(form.columnId===doingColumnId&&form.checklist.length!==1&&!form.checklist.some(item=>item.checked)){setChecklistError('Marca al menos un ítem del checklist antes de pasar la tarea a DOING.');return}if(form.columnId===doneColumnId&&form.checklist.length&&!checklistComplete(form.checklist)){setChecklistError('Marca todos los ítems del checklist antes de pasar la tarea a DONE.');return}setDateError('');setChecklistError('');if(form.title.trim()){const {hasDates,...taskForm}=form;onSave({...taskForm,start:hasDates?taskForm.start:null,due:hasDates?taskForm.due:null,columnId:checklistComplete(form.checklist)?doneColumnId:form.columnId,description:checklistDescription(form.checklist)})} }}>
     <label>Nombre de la tarea<input autoFocus required name="title" value={form.title} onChange={change} placeholder="¿Qué tienes que hacer?"/></label>
     <fieldset className="checklist-editor"><legend>Checklist</legend><div>{form.checklist.map((item,index)=><label key={item.id} className="checklist-editor-item"><input type="checkbox" checked={item.checked} onChange={event=>updateChecklist(index,{checked:event.target.checked})}/><input value={item.text} onChange={event=>updateChecklist(index,{text:event.target.value})} placeholder="Añade un ítem" aria-label={`Ítem ${index+1} del checklist`}/><button type="button" className="icon-button" onClick={()=>setForm(current=>({...current,checklist:current.checklist.filter((_,itemIndex)=>itemIndex!==index)}))} aria-label="Eliminar ítem"><X width={16} height={16}/></button></label>)}</div><button type="button" className="add-checklist-item" onClick={()=>setForm(current=>{const checklist=[...current.checklist,{id:crypto.randomUUID(),text:'',checked:false}];return {...current,checklist,columnId:current.columnId===doneColumnId?doingColumnId:current.columnId}})}><Plus width={16} height={16}/> Añadir ítem</button></fieldset>
     <label>Notas<textarea name="notes" rows="6" value={form.notes} onChange={change} placeholder="Agrega observaciones, contexto o información adicional"/></label>
     <label>Link<input type="url" name="link" value={form.link} onChange={change} placeholder="https://ejemplo.com/recurso"/></label>
     <label className="effort-field"><span>Nivel de esfuerzo <b>{form.effort}</b></span><input className="effort-range" type="range" name="effort" min="1" max="5" step="1" value={form.effort} onChange={change}/><span className="effort-scale"><small>1 · Bajo</small><small>5 · Alto</small></span></label>
-    <div className="form-grid"><label>Fecha de inicio<input required type="date" name="start" value={form.start} max={form.due} onChange={change}/></label><label>Fecha de fin<input required type="date" name="due" value={form.due} min={form.start} onChange={change}/></label></div>
+    <label className="date-toggle"><input type="checkbox" checked={form.hasDates} onChange={event=>setForm(current=>{const enabled=event.target.checked;const date=toISODate(new Date());return {...current,hasDates:enabled,start:enabled?(current.start||date):'',due:enabled?(current.due||current.start||date):''}})}/> Definir fechas de inicio y fin</label>
+    {form.hasDates&&<div className="form-grid"><label>Fecha de inicio<input required type="date" name="start" value={form.start} max={form.due} onChange={change}/></label><label>Fecha de fin<input required type="date" name="due" value={form.due} min={form.start} onChange={change}/></label></div>}
     {dateError&&<p className="form-error" role="alert">{dateError}</p>}{checklistError&&<p className="form-error" role="alert">{checklistError}</p>}
     <div className="form-grid form-grid-single">
     <label>Estado<select name="columnId" value={form.columnId} onChange={change}>{columns.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select></label></div>
@@ -131,7 +132,7 @@ function TaskForm({ task, columns, defaultColumn, defaultDate, onSave, onClose }
 
 function TaskCard({ task, onEdit, onArchive, onDragStart, onDragEnd, onToggleChecklist, onDragOver, onDragLeave, onDrop, boardDropTarget }) {
   const [menuOpen,setMenuOpen]=useState(false);
-  const overdue = task.status === 'active' && task.due < toISODate(new Date());
+  const overdue = task.status === 'active' && Boolean(task.due) && task.due < toISODate(new Date());
   const checklist=normalizeChecklist(task.checklist,task.description,task.id);
   const visibleChecklist=[...checklist].sort((a,b)=>Number(a.checked)-Number(b.checked));
   const effort=Number(task.effort)||3;
@@ -139,7 +140,7 @@ function TaskCard({ task, onEdit, onArchive, onDragStart, onDragEnd, onToggleChe
   return <article className={`task-card ${task.status} ${overdue?'overdue':''} ${boardDropTarget?.placement==='before'?'is-board-drop-before':''} ${boardDropTarget?.placement==='after'?'is-board-drop-after':''}`} draggable onDragStart={e=>onDragStart(e, task.id)} onDragEnd={onDragEnd} onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop} onClick={()=>onEdit(task)}>
     <div className="task-top"><div className="task-menu-wrap"><button className="more" onClick={event=>{event.stopPropagation();setMenuOpen(value=>!value)}} aria-label={`Opciones de ${task.title}`} aria-expanded={menuOpen}><DotsThree width={22} height={22}/></button>{menuOpen&&<div className="task-menu"><button onClick={confirmArchive}><Archive width={16} height={16}/> Archivar</button></div>}</div></div>
     <h3>{task.title}</h3>{task.status!=='completed'&&visibleChecklist.length?<ul className="task-checklist">{visibleChecklist.map(item=><li key={item.id}><label><input type="checkbox" checked={item.checked} onClick={event=>event.stopPropagation()} onChange={()=>onToggleChecklist(task,item.id)}/><span>{item.text}</span></label></li>)}</ul>:null}
-    <div className="task-card-footer"><div className={`due ${overdue?'overdue':''}`}><CalendarBlank width={16} height={16}/><span>{overdue?'Venció ':''}{fmt(task.due)}</span></div><span className="timeline-effort task-card-effort" aria-label={`Esfuerzo ${effort} de 5`} title={`Esfuerzo ${effort} de 5`}>{[1,2,3,4,5].map(level=><i className={level<=effort?'is-filled':''} key={level}/>)}</span></div>
+    <div className="task-card-footer"><div className={`due ${overdue?'overdue':''}`}><CalendarBlank width={16} height={16}/><span>{task.due?(overdue?'Venció ':'')+fmt(task.due):'Sin fecha'}</span></div><span className="timeline-effort task-card-effort" aria-label={`Esfuerzo ${effort} de 5`} title={`Esfuerzo ${effort} de 5`}>{[1,2,3,4,5].map(level=><i className={level<=effort?'is-filled':''} key={level}/>)}</span></div>
   </article>;
 }
 
@@ -163,7 +164,7 @@ function Board({ columns, tasks, setTasks, setColumns, openTask, onViewCompleted
   const doingColumnId=columns.find(column=>column.slug==='doing'||column.id==='doing')?.id;
   const doneColumnId=columns.find(column=>column.slug==='done'||column.id==='done')?.id;
   const isFixedColumn=column=>Boolean(column?.isFixed)||fixedColumnIds.includes(column?.id);
-  const isBoardOverdue=task=>task.status==='active'&&task.due<toISODate(new Date());
+  const isBoardOverdue=task=>task.status==='active'&&Boolean(task.due)&&task.due<toISODate(new Date());
   const boardTaskSort=(a,b)=>{const aOverdue=isBoardOverdue(a),bOverdue=isBoardOverdue(b);if(aOverdue!==bOverdue)return aOverdue?-1:1;const aEditedAfterManual=!a.manualBoardOrderAt||Date.parse(a.updatedAt||0)>Date.parse(a.manualBoardOrderAt);const bEditedAfterManual=!b.manualBoardOrderAt||Date.parse(b.updatedAt||0)>Date.parse(b.manualBoardOrderAt);if(aEditedAfterManual!==bEditedAfterManual)return aEditedAfterManual?-1:1;if(aEditedAfterManual)return (Date.parse(b.updatedAt||b.createdAt||0)||0)-(Date.parse(a.updatedAt||a.createdAt||0)||0);return (a.boardPosition??Number.MAX_SAFE_INTEGER)-(b.boardPosition??Number.MAX_SAFE_INTEGER)};
   const applyMove=(taskId,columnId,checklist)=>setTasks(items=>items.map(task=>String(task.id)===String(taskId)?{...task,checklist:checklist||task.checklist,description:checklist?checklistDescription(checklist):task.description,columnId,status:columnId===doneColumnId?'completed':'active',completedAt:columnId===doneColumnId?new Date().toISOString():undefined,updatedAt:new Date().toISOString(),manualBoardOrderAt:undefined}:task));
   const moveTask = (taskId, columnId) => {const task=tasks.find(item=>String(item.id)===String(taskId));if(!task||task.columnId===columnId)return;const checklist=normalizeChecklist(task.checklist,task.description,task.id);const hasStarted=checklist.some(item=>item.checked);const singleItemChecklist=checklist.length===1;if(task.columnId===doneColumnId){setMovePrompt({type:'done-locked',task});return}if(columnId===doneColumnId){if(task.columnId===todoColumnId){setMovePrompt({type:'todo-to-done',task});return}if(!checklistComplete(checklist)){setMovePrompt({type:'complete',task,columnId});return}applyMove(taskId,columnId);return}if(columnId===doingColumnId&&!hasStarted&&!singleItemChecklist){setMovePrompt({type:'needs-progress',task});return}if(columnId===todoColumnId&&task.columnId===doingColumnId&&hasStarted){setMovePrompt({type:'reset',task,columnId});return}applyMove(taskId,columnId)};
@@ -227,12 +228,12 @@ function Timeline({ tasks, columns, setTasks, openTask, holidays, setHolidays, i
   const range=useMemo(()=>getPeriodRange('week',anchorDate),[anchorDate]);
   const days=useMemo(()=>Array.from({length:5},(_,index)=>toISODate(addDays(parseISODate(range.start),index))),[range.start]);
   const workEnd=days[days.length-1];
-  const visibleTasks=tasks.map((task,index)=>({...task,timelinePosition:task.position??index})).filter(task=>task.status!=='deprecated'&&(task.start||task.due)<=workEnd&&task.due>=range.start).sort((a,b)=>a.timelinePosition-b.timelinePosition||(a.start||a.due).localeCompare(b.start||b.due)||b.due.localeCompare(a.due));
+  const visibleTasks=tasks.map((task,index)=>({...task,timelinePosition:task.position??index})).filter(task=>task.status!=='deprecated'&&task.due&&(task.start||task.due)<=workEnd&&task.due>=range.start).sort((a,b)=>a.timelinePosition-b.timelinePosition||(a.start||a.due).localeCompare(b.start||b.due)||b.due.localeCompare(a.due));
   const columnById=new Map(columns.map(column=>[column.id,column]));
   const taskStatusLabel=task=>(columnById.get(task.columnId)?.title||'Sin estado').toUpperCase();
   const taskStatusTone=task=>columnTone(columnById.get(task.columnId));
-  const isOverdue=task=>task.status==='active'&&task.due<today;
-  const isOverdueDoing=task=>{const column=columnById.get(task.columnId);return (column?.slug==='doing'||column?.id==='doing')&&task.status!=='completed'&&task.due<today};
+  const isOverdue=task=>task.status==='active'&&Boolean(task.due)&&task.due<today;
+  const isOverdueDoing=task=>{const column=columnById.get(task.columnId);return (column?.slug==='doing'||column?.id==='doing')&&task.status!=='completed'&&Boolean(task.due)&&task.due<today};
   const timelineLanes=[];
   visibleTasks.forEach(task=>{
     const clippedStart=(task.start||task.due)>range.start?(task.start||task.due):range.start;
@@ -305,8 +306,8 @@ function Today({ tasks, setTasks, openTask }) {
   const minutesSinceMidnight=now.getHours()*60+now.getMinutes();
   const greeting=minutesSinceMidnight>=360&&minutesSinceMidnight<720?'Buenos días':minutesSinceMidnight<=1080?'Buenas tardes':'Buenas noches';
   const completedToday=task=>task.status==='completed'&&String(task.completedAt||'').slice(0,10)===today;
-  const list = tasks.filter(task => task.status !== 'deprecated' && (task.due === today || (task.status==='active' && task.due<today) || completedToday(task))).sort((a,b)=>{const priority=task=>task.status==='active'&&task.due<today?0:task.status==='active'?1:2;return priority(a)-priority(b)||a.due.localeCompare(b.due)});
-  const overdueTasks=tasks.filter(task=>task.status==='active'&&task.due<today).sort((a,b)=>a.due.localeCompare(b.due));
+  const list = tasks.filter(task => task.status !== 'deprecated' && (task.due === today || (task.status==='active' && task.due&&task.due<today) || completedToday(task))).sort((a,b)=>{const priority=task=>task.status==='active'&&task.due&&task.due<today?0:task.status==='active'?1:2;return priority(a)-priority(b)||String(a.due||'').localeCompare(String(b.due||''))});
+  const overdueTasks=tasks.filter(task=>task.status==='active'&&task.due&&task.due<today).sort((a,b)=>a.due.localeCompare(b.due));
   const workloadSummary=`Tu carga para hoy es de ${list.length} ${list.length===1?'tarea':'tareas'}${overdueTasks.length?` y tienes ${overdueTasks.length} ${overdueTasks.length===1?'atrasada':'atrasadas'}.`:'.'}`;
 
   return <div className="today-view">
@@ -362,9 +363,9 @@ export function App() {
   useEffect(()=>localStorage.setItem('td-page',page),[page]);
   useEffect(()=>{const media=window.matchMedia('(prefers-color-scheme: dark)');const applyTheme=()=>{document.documentElement.dataset.theme=theme==='system'?(media.matches?'dark':'light'):theme};applyTheme();localStorage.setItem('td-theme',theme);media.addEventListener('change',applyTheme);return()=>media.removeEventListener('change',applyTheme)},[theme]);
   const pending=useMemo(()=>tasks.filter(t=>t.status==='active').length,[tasks]);
-  const todayTaskCount=useMemo(()=>{const today=toISODate(new Date());return tasks.filter(task=>task.status!=='deprecated'&&(task.due===today||(task.status==='active'&&task.due<today)||(task.status==='completed'&&String(task.completedAt||'').slice(0,10)===today))).length},[tasks]);
-  const todayPendingCount=useMemo(()=>{const today=toISODate(new Date());return tasks.filter(task=>task.status==='active'&&task.due<=today).length},[tasks]);
-  const currentWeekTaskCount=useMemo(()=>{const today=toISODate(new Date());const currentWeek=getPeriodRange('week',today);return tasks.filter(task=>task.status!=='deprecated'&&(task.start||task.due)<=currentWeek.end&&task.due>=currentWeek.start).length},[tasks]);
+  const todayTaskCount=useMemo(()=>{const today=toISODate(new Date());return tasks.filter(task=>task.status!=='deprecated'&&(task.due===today||(task.status==='active'&&task.due&&task.due<today)||(task.status==='completed'&&String(task.completedAt||'').slice(0,10)===today))).length},[tasks]);
+  const todayPendingCount=useMemo(()=>{const today=toISODate(new Date());return tasks.filter(task=>task.status==='active'&&task.due&&task.due<=today).length},[tasks]);
+  const currentWeekTaskCount=useMemo(()=>{const today=toISODate(new Date());const currentWeek=getPeriodRange('week',today);return tasks.filter(task=>task.status!=='deprecated'&&task.due&&(task.start||task.due)<=currentWeek.end&&task.due>=currentWeek.start).length},[tasks]);
   const doneColumnId=columns.find(column=>column.slug==='done'||column.id==='done')?.id||'done';
   const openTask=(task,columnId,date)=>{setEditing(task);setDefaultColumn(columnId);setDefaultDate(date);setModal(true)};
   const save=form=>{const taskForm={...form,effort:Number(form.effort),updatedAt:new Date().toISOString()};if(editing)setTasks(ts=>ts.map(t=>t.id===editing.id?{...t,...taskForm,status:form.columnId===doneColumnId?'completed':t.status==='deprecated'?'deprecated':'active',completedAt:form.columnId===doneColumnId?(t.completedAt||new Date().toISOString()):undefined}:t));else setTasks(ts=>[...ts,{...taskForm,id:crypto.randomUUID(),status:form.columnId===doneColumnId?'completed':'active',createdAt:toISODate(new Date()),completedAt:form.columnId===doneColumnId?new Date().toISOString():undefined}]);setModal(false)};
