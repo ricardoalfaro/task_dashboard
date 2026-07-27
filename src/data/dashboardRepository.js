@@ -42,6 +42,8 @@ const columnRecord = (boardId,column) => ({
   is_fixed: Boolean(column.isFixed),
 });
 
+const withoutEmoji = record => {const {emoji,...legacyRecord}=record;return legacyRecord};
+
 const taskRecord = (boardId,task) => ({
   id: task.id,
   board_id: boardId,
@@ -119,7 +121,12 @@ export const dashboardRepository = {
   },
 
   async upsertColumn(boardId,column) {
-    const result=await requireSupabase().from('columns').upsert(columnRecord(boardId,column)).select().single();
+    const client=requireSupabase();
+    const record=columnRecord(boardId,column);
+    let result=await client.from('columns').upsert(record).select().single();
+    // Keeps production usable during the rolling schema deployment. Once the
+    // migration exists, the first request above persists the selected emoji.
+    if(result.error&&/columns\.emoji|emoji.*schema cache/i.test(result.error.message||''))result=await client.from('columns').upsert(withoutEmoji(record)).select().single();
     return mapColumn(resultOrThrow(result,'No se pudo guardar la columna'));
   },
 
