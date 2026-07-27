@@ -41,6 +41,14 @@ html[data-theme="dark"] .timeline-date-picker input{
   color:var(--color-text);
 }
 html[data-theme="dark"] .project-switcher-tab{background:var(--color-surface-alt);border-color:#0e0a25;color:var(--color-text)}
+html[data-theme="dark"] .column-emoji-trigger:hover,
+html[data-theme="dark"] .column-emoji-trigger:focus-visible{background:rgba(143,114,255,.16)}
+html[data-theme="dark"] .column-emoji-menu{background:rgba(6,8,17,.9);border-color:rgba(151,166,212,.22);box-shadow:none;backdrop-filter:blur(18px)}
+html[data-theme="dark"] .column-emoji-menu button:hover,
+html[data-theme="dark"] .column-emoji-menu button.selected{background:rgba(143,114,255,.18)}
+html[data-theme="dark"] .board-add-column{background:rgba(3,6,14,.42);border-color:rgba(151,166,212,.25);color:var(--color-text-muted)}
+html[data-theme="dark"] .board-add-column:hover,
+html[data-theme="dark"] .board-add-column:focus-visible{background:rgba(143,114,255,.16);border-color:rgba(151,166,212,.48);color:var(--color-text)}
 
 html[data-theme="dark"] nav button,
 html[data-theme="dark"] .aside-bottom button,
@@ -149,6 +157,23 @@ html[data-theme="dark"] .timeline-task.completed{
   background:linear-gradient(155deg,rgba(20,104,70,.45),rgba(11,58,43,.24) 58%,rgba(19,8,35,.12))!important;
   border-color:rgba(117,214,160,.72);
 }
+
+/* Board cards use semantic glass fills: DONE green, active black, overdue red. */
+html[data-theme="dark"] .board .task-card.completed{
+  background:linear-gradient(155deg,rgba(20,104,70,.45),rgba(11,58,43,.24) 58%,rgba(19,8,35,.12))!important;
+  border-color:rgba(117,214,160,.72);
+}
+html[data-theme="dark"] .board .task-card.completed .task-checklist::after{background:linear-gradient(to bottom,transparent,rgba(11,58,43,.42))!important}
+html[data-theme="dark"] .board .task-card.active:not(.overdue){
+  background:linear-gradient(155deg,rgba(3,6,14,.7),rgba(6,8,17,.46) 58%,rgba(19,8,35,.25))!important;
+  border-color:rgba(14,28,53,.9);
+}
+html[data-theme="dark"] .board .task-card.active:not(.overdue) .task-checklist::after{background:linear-gradient(to bottom,transparent,rgba(6,8,17,.58))!important}
+html[data-theme="dark"] .board .task-card.overdue{
+  background:linear-gradient(155deg,rgba(123,17,35,.46),rgba(59,13,29,.25) 58%,rgba(19,8,35,.12))!important;
+  border-color:rgba(255,113,128,.72);
+}
+html[data-theme="dark"] .board .task-card.overdue .task-checklist::after{background:linear-gradient(to bottom,transparent,rgba(59,13,29,.42))!important}
 
 /* Weekday separation remains legible beneath the translucent planner cards. */
 html[data-theme="dark"] .timeline-days>div:nth-child(even){background:linear-gradient(155deg,rgba(2,5,13,.4),rgba(8,11,23,.2) 58%,rgba(19,8,35,.1))!important}

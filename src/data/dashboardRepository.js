@@ -4,6 +4,7 @@ const mapColumn = column => ({
   id: column.id,
   title: column.title,
   color: column.color,
+  emoji: column.emoji,
   position: column.position,
   isFixed: column.is_fixed,
   slug: column.slug,
@@ -36,6 +37,7 @@ const columnRecord = (boardId,column) => ({
   slug: column.slug,
   title: column.title,
   color: column.color,
+  emoji: column.emoji || '📌',
   position: column.position,
   is_fixed: Boolean(column.isFixed),
 });
@@ -66,6 +68,7 @@ const localColumnRecord = (boardId,column,position) => ({
   slug: column.slug || String(column.id).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || `column-${position}`,
   title: column.title,
   color: column.color || '#c5b3d3',
+  emoji: column.emoji || '📌',
   position,
   is_fixed: ['todo','doing','done'].includes(String(column.id)) || Boolean(column.isFixed),
 });
